@@ -1,5 +1,5 @@
 EESchema Schematic File Version 2
-LIBS:bus_raspberry_pi
+LIBS:bus_beaglebone
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -30,14 +30,14 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:bus_raspberry_pi-cache
+LIBS:bus_beaglebone-cache
 EELAYER 24 0
 EELAYER END
 $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
-Title "Bus Raspberry Pi"
-Date "07 Aug 2014"
+Title "Bus Beagle Bone Black"
+Date "10 Aug 2014"
 Rev "A"
 Comp ""
 Comment1 ""

@@ -1,4 +1,4 @@
-update=Thu 07 Aug 2014 10:27:41 AM PDT
+update=Sun 10 Aug 2014 09:35:59 PM PDT
 version=1
 last_client=kicad
 [cvpcb]
@@ -39,7 +39,7 @@ RptD_Y=100
 RptLab=1
 LabSize=60
 [eeschema/libraries]
-LibName1=bus_raspberry_pi
+LibName1=bus_beaglebone
 LibName2=power
 LibName3=device
 LibName4=transistors
