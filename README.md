@@ -110,7 +110,7 @@ The reset signal can be sourced from four locations:
 
 * The #NRST on the JTAG connector (N9),
 
-* The GPIO18 pin on N10, and
+* The GPIO110_SPI1_SCLK pin on N10, and
 
 * The #RTS signal (3.3V) on the programming FTDI connector (N4),
 
@@ -120,8 +120,8 @@ to ground when pushed.  Done.
 Similarly, the #NRST line on the JTAG connector (N9) can be
 driven low by a JTAG programmer/debugger.  Done.
 
-Both the #RTS signal from N4 and the GPIO18 pin from N10
-are used to trigger temporary reset pulse.  The basic
+Both the #RTS signal from N4 and the GPIO110_SPI1_SCLK pin
+from N10 are used to trigger temporary reset pulse.  The basic
 circuit is C6, D1 and R4 for #RTS/N4 and C8, D1 and R4.
 Since the circuit is basically the same for both branches,
 only the #RTS/N4 branch is explained.
@@ -188,7 +188,7 @@ the voltage is clamped to 5.2V rather than 5.7.
 ### RXD and TXD Considerations
 
 In general, the primary purpose of this board is to connect
-TXD0 and RXD1 to GPIO15_RXD and GPIO14_TXD respectively.
+TXD0 and RXD1 to GPIO2_UART2_RX and GPIO3_UART2_TX respectively.
 In addition, it is desirable to allow the programming
 connector (N5) to be used to program the processor (U4)
 *and* to use the console connector (N5) to view the console
@@ -217,7 +217,7 @@ is routed through the R1D/2D voltage divider to bring the
 voltage down to a nominal 3.0V.  This signal is routed to U1C.
 U1C converts the 3.0V signal to a 5V output which is again
 divided back down to 3.0V via R1E/R2E.  This 3.0V signal goes
-into GPIO15_RXD on the Raspberry Pi.
+into GPIO2_UART2_RX on the Raspberry Pi.
 
 In the reverse direction, the 3.3V output of GPIO15_TXD is
 sent through the R1G/R2G voltage divider U1B which converts
@@ -239,7 +239,7 @@ In this situation, the 5V TXD0 output on processor (U4)
 is voltage divided R1D/R2D down to 3.0V and to both U1C
 and the RXD signal of N4.
 
-The GPIO14_TXD is routed through the R1G/R2G voltage
+The GPIO3_UART2_TX is routed through the R1G/R2G voltage
 divider directly to the RXD pin of N5.
 
 ## LED Circuit

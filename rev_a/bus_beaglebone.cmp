@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Sun 10 Aug 2014 09:40:35 PM PDT
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Sun 10 Aug 2014 10:39:38 PM PDT
 
 BeginCmp
 TimeStamp = /53E3C60A;
@@ -176,10 +176,10 @@ IdModule  = Bus_BeagleBone_Rev_A:Pin_Header_Straight_2x05_Shrouded;
 EndCmp
 
 BeginCmp
-TimeStamp = /53E65B95;
+TimeStamp = /53E8703D;
 Reference = N10;
-ValeurCmp = RASPI_CONNECTOR_40;
-IdModule  = Bus_BeagleBone_Rev_A:Pin_Header_Straight_2x20;
+ValeurCmp = BBB_P9_HEADER;
+IdModule  = Bus_BeagleBone_Rev_A:Pin_Header_Straight_2x16;
 EndCmp
 
 BeginCmp

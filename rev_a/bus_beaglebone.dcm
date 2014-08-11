@@ -28,6 +28,10 @@ $CMP AVR_JTAG_CONNECTOR
 D 10-pin ATmega JTAG Connector
 $ENDCMP
 #
+$CMP BBB_P9_HEADER
+D 32-pin Partial Header for BBB P9 Connector
+$ENDCMP
+#
 $CMP BUS_MASTER_HEADER
 D Bus Master Connector
 $ENDCMP
