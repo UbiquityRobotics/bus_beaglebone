@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Sun 10 Aug 2014 10:39:38 PM PDT
+Cmp-Mod V01 Created by Cvpcb (2014-jan-25)-product   date = Mon 18 Aug 2014 01:36:46 PM PDT
 
 BeginCmp
 TimeStamp = /53E3C60A;
@@ -192,14 +192,14 @@ EndCmp
 BeginCmp
 TimeStamp = /53E80A39;
 Reference = R1;
-ValeurCmp = 22K;
+ValeurCmp = 22Kx;
 IdModule  = Bus_BeagleBone_Rev_A:Pin_Header_Straight_1x08;
 EndCmp
 
 BeginCmp
 TimeStamp = /53E81263;
 Reference = R2;
-ValeurCmp = 33K;
+ValeurCmp = 33Kx;
 IdModule  = Bus_BeagleBone_Rev_A:Pin_Header_Straight_1x08;
 EndCmp
 
