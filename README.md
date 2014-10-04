@@ -270,4 +270,38 @@ resistors R5 and R6 form a voltage divider that simply
 wastes power.  At least it does not accidentally short
 the power supply to ground.
 
+## Rev. A Issues
+
+* N4 is labeled "CONSOLE" and N5 is labeled "PROGRAM".  This
+  is backwards.
+
+* Make sure the BBB connector edge is clear of obsticles.
+
+* The artwork for N6 (the power supply connector) is backwards.
+
+* JTAG NRST is not connected to #RESET.
+
+* R1D is connected to +5V not TXD0.
+
+* R1I is connected to +5V not GPIO2_UART2_RX
+
+* C1 can be moved to be in line with C2.
+
+* C6 and C8 should be 1uF.
+
+* Rotate N3 (the bus connector); it is pointing the wrong way.
+
+* The MCP2562 (U2) RxD and Txd (pins 1 and 4) are swapped.
+
+* Tie unused gate inputs to 0V/5V.
+
+* Add 100K pull up resistor inputs that can be disconnected.
+
+* Think about connecting MCP2562 (U2) STBY (pin 8) to a processor pin.
+  Similarly, think about makeing sure that a low transition on the
+  TxD (pin 1) can wake up the microcontroller. [Yes to standby,
+  no to everything else, this is the host board.]
+
+* The DC/DC converter artwork is backwards.
+
 
