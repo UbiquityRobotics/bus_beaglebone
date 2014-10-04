@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name bus_beaglebone)(type KiCad)(uri $KIPRJMOD/bus_beaglebone.pretty)(options "")(descr ""))
+)

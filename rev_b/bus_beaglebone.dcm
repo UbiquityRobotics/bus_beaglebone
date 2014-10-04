@@ -1,0 +1,131 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP 3MM_HOLE
+D 3mm Mounting Hole (#4 hole too)
+$ENDCMP
+#
+$CMP 74LS09
+D Quad AND Gate
+$ENDCMP
+#
+$CMP 74X125
+D Quad Tri-State Buffer
+$ENDCMP
+#
+$CMP 74x05
+D Hex Open Collector Inverter
+$ENDCMP
+#
+$CMP ARD_SPI_HEADER
+D Arduino SPI Header
+$ENDCMP
+#
+$CMP ATMEGA324_DIP40
+D ATMega324x in a 40-pin DIP Package
+$ENDCMP
+#
+$CMP AVR_JTAG_CONNECTOR
+D 10-pin ATmega JTAG Connector
+$ENDCMP
+#
+$CMP BBB_P9_HEADER
+D 32-pin Partial Header for BBB P9 Connector
+$ENDCMP
+#
+$CMP BUS_MASTER_HEADER
+D Bus Master Connector
+$ENDCMP
+#
+$CMP BUS_SLAVE_HEADER
+D Bus Slave Connector
+$ENDCMP
+#
+$CMP CRYSTAL
+D Crystal
+$ENDCMP
+#
+$CMP C_HORIZ
+D Horizontal Capacitor
+$ENDCMP
+#
+$CMP C_VERT
+D Vertiacal Capacitor
+$ENDCMP
+#
+$CMP FTDI_HEADER
+D 6-pin FTDI USB to Serial Connector
+$ENDCMP
+#
+$CMP LED
+D Light Emitting Diode (Vertical)
+$ENDCMP
+#
+$CMP LED_JUMPER
+D LED Power/Blink Jumper
+$ENDCMP
+#
+$CMP MCP2562
+D MCBP2562 (Microchip CAN Bus Transceiver)
+$ENDCMP
+#
+$CMP OSHW_LOGO
+D Open Source Hardware Logo
+$ENDCMP
+#
+$CMP POWER_TERMINAL
+D Power/Battery Terminal Block Connector
+$ENDCMP
+#
+$CMP POWER_TERMINAL_MASTER
+D Power/Battery Terminal Block Connector
+$ENDCMP
+#
+$CMP P_CHANNEL_MOSET_HORIZ
+D Horizontal P-Channel MOSFET
+$ENDCMP
+#
+$CMP RASPI_CONNECTOR
+D 26-pin Raspberry Pi Connector
+$ENDCMP
+#
+$CMP RASPI_CONNECTOR_40
+D 40-pin Raspberry Pi Connector
+$ENDCMP
+#
+$CMP REGULATOR_CONNECTOR
+D Oki Regulator Connector
+$ENDCMP
+#
+$CMP R_HORIZ
+D Horizontal Resistor
+$ENDCMP
+#
+$CMP R_VERT
+D Vertical Resistor
+$ENDCMP
+#
+$CMP R_VERT_SIP8
+D Vertical Resistor in SIP-8 Package
+$ENDCMP
+#
+$CMP SCHOTTKY_DIODE_VERT
+D Vertical Schottky_Diode
+$ENDCMP
+#
+$CMP SERIAL_CONNECTOR
+D Serial Connection
+$ENDCMP
+#
+$CMP TERMINATE_JUMPER
+D Bus Termination Jumper
+$ENDCMP
+#
+$CMP VCC
+D VCC Power Symbol
+$ENDCMP
+#
+$CMP VOLTAGE_REGULATOR
+D 3-Terminal Voltage Regulator
+$ENDCMP
+#
+#End Doc Library

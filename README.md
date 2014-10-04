@@ -275,13 +275,13 @@ the power supply to ground.
 * N4 is labeled "CONSOLE" and N5 is labeled "PROGRAM".  This
   is backwards.
 
-* Make sure the BBB connector edge is clear of obsticles.
-
 * The artwork for N6 (the power supply connector) is backwards.
 
 * JTAG NRST is not connected to #RESET.
 
 * R1D is connected to +5V not TXD0.
+
+* R1E is connected to +5V not U1C output.
 
 * R1I is connected to +5V not GPIO2_UART2_RX
 
@@ -294,6 +294,9 @@ the power supply to ground.
 * The MCP2562 (U2) RxD and Txd (pins 1 and 4) are swapped.
 
 * Tie unused gate inputs to 0V/5V.
+
+* Make sure the BBB connector edge is clear of obsticles.
+  Think about making N10 (the BBB connector) the full length.
 
 * Add 100K pull up resistor inputs that can be disconnected.
 
