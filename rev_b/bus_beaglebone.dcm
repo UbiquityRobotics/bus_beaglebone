@@ -104,6 +104,14 @@ $CMP R_VERT
 D Vertical Resistor
 $ENDCMP
 #
+$CMP R_VERT_SIP5
+D Vertical Resistor in SIP-8 Package
+$ENDCMP
+#
+$CMP R_VERT_SIP5_ALT
+D Vertical Resistor in SIP-8 Package
+$ENDCMP
+#
 $CMP R_VERT_SIP8
 D Vertical Resistor in SIP-8 Package
 $ENDCMP

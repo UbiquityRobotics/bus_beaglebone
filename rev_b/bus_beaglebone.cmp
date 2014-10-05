@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sat 04 Oct 2014 09:55:56 AM PDT
+Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sat 04 Oct 2014 02:27:25 PM PDT
 
 BeginCmp
 TimeStamp = /53E3C60A;
@@ -38,7 +38,7 @@ EndCmp
 BeginCmp
 TimeStamp = /53E3D418;
 Reference = C6;
-ValeurCmp = .1uF;
+ValeurCmp = 1uF;
 IdModule  = bus_beaglebone:Capacitor3MMDiscRM2.5;
 EndCmp
 
@@ -52,7 +52,7 @@ EndCmp
 BeginCmp
 TimeStamp = /53E7ABC3;
 Reference = C8;
-ValeurCmp = .1uF;
+ValeurCmp = 1uF;
 IdModule  = bus_beaglebone:Capacitor3MMDiscRM2.5;
 EndCmp
 
@@ -179,7 +179,7 @@ BeginCmp
 TimeStamp = /53E8703D;
 Reference = N10;
 ValeurCmp = BBB_P9_HEADER;
-IdModule  = bus_beaglebone:Pin_Header_Straight_2x16;
+IdModule  = bus_beaglebone:Pin_Header_Straight_2x23;
 EndCmp
 
 BeginCmp
@@ -190,17 +190,17 @@ IdModule  = bus_beaglebone:TO-220_FET-GDS_Horizontal_LargePads;
 EndCmp
 
 BeginCmp
-TimeStamp = /53E80A39;
+TimeStamp = /54308E62;
 Reference = R1;
-ValeurCmp = 22Kx;
-IdModule  = bus_beaglebone:Pin_Header_Straight_1x08;
+ValeurCmp = 22K;
+IdModule  = bus_beaglebone:Pin_Header_Straight_1x05;
 EndCmp
 
 BeginCmp
-TimeStamp = /53E81263;
+TimeStamp = /543072F3;
 Reference = R2;
-ValeurCmp = 33Kx;
-IdModule  = bus_beaglebone:Pin_Header_Straight_1x08;
+ValeurCmp = 22K;
+IdModule  = bus_beaglebone:Resistor_Horizontal__400;
 EndCmp
 
 BeginCmp
@@ -229,6 +229,20 @@ TimeStamp = /53E6468F;
 Reference = R6;
 ValeurCmp = 470;
 IdModule  = bus_beaglebone:Resistor_Horizontal__400;
+EndCmp
+
+BeginCmp
+TimeStamp = /54307451;
+Reference = R7;
+ValeurCmp = 22K;
+IdModule  = bus_beaglebone:Resistor_Horizontal__400;
+EndCmp
+
+BeginCmp
+TimeStamp = /54309581;
+Reference = R8;
+ValeurCmp = 33K;
+IdModule  = bus_beaglebone:Pin_Header_Straight_1x05;
 EndCmp
 
 BeginCmp

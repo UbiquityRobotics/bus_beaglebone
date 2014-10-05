@@ -272,39 +272,34 @@ the power supply to ground.
 
 ## Rev. A Issues
 
-* N4 is labeled "CONSOLE" and N5 is labeled "PROGRAM".  This
-  is backwards.
+* JTAG NRST is not connected to #RESET. [x]
 
-* The artwork for N6 (the power supply connector) is backwards.
+* R1D is connected to +5V not TXD0. [x]
 
-* JTAG NRST is not connected to #RESET.
+* R1E is connected to +5V not U1C output. [x]
 
-* R1D is connected to +5V not TXD0.
+* R1G is connected to +5V not GPIO2_UART2_RX. [x]
 
-* R1E is connected to +5V not U1C output.
+* C6 and C8 should be 1uF. [x]
 
-* R1I is connected to +5V not GPIO2_UART2_RX
+* The MCP2562 (U2) RxD and Txd (pins 1 and 4) are swapped. [x]
 
-* C1 can be moved to be in line with C2.
-
-* C6 and C8 should be 1uF.
-
-* Rotate N3 (the bus connector); it is pointing the wrong way.
-
-* The MCP2562 (U2) RxD and Txd (pins 1 and 4) are swapped.
-
-* Tie unused gate inputs to 0V/5V.
+* Add 100K pull up resistor inputs that can be disconnected. [x]
 
 * Make sure the BBB connector edge is clear of obsticles.
-  Think about making N10 (the BBB connector) the full length.
-
-* Add 100K pull up resistor inputs that can be disconnected.
+  Think about making N10 (the BBB connector) the full length. [x]
 
 * Think about connecting MCP2562 (U2) STBY (pin 8) to a processor pin.
-  Similarly, think about makeing sure that a low transition on the
-  TxD (pin 1) can wake up the microcontroller. [Yes to standby,
-  no to everything else, this is the host board.]
 
-* The DC/DC converter artwork is backwards.
+
+* Rotate N3 (the bus connector); it is pointing the wrong way. [x]
+
+* C1 can be moved to be in line with C2. [x]
+
+
+
+* N4 is labeled "CONSOLE" and N5 is labeled "PROGRAM".  This is backwards. [x]
+
+* The artwork for N6 (the power supply connector) is backwards. [x]
 
 
