@@ -291,7 +291,6 @@ the power supply to ground.
 
 * Think about connecting MCP2562 (U2) STBY (pin 8) to a processor pin.
 
-
 * Rotate N3 (the bus connector); it is pointing the wrong way. [x]
 
 * C1 can be moved to be in line with C2. [x]
@@ -302,4 +301,15 @@ the power supply to ground.
 
 * The artwork for N6 (the power supply connector) is backwards. [x]
 
+
+## Rev. B Issues
+
+* Move N10 closer to the PCB edge.
+
+* Think about expanding N10 from 46 to 50 pins.  This allows the two
+  pins on each end to be jamed with jumpers to provid a poor man's
+  shroud.
+
+* Think about add two pins next to N10 to prevent miss aligning
+  N10 along the P9 row.
 

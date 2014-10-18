@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sat 04 Oct 2014 02:27:25 PM PDT
+Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sun 05 Oct 2014 04:48:44 PM PDT
 
 BeginCmp
 TimeStamp = /53E3C60A;
@@ -150,7 +150,7 @@ EndCmp
 BeginCmp
 TimeStamp = /53E3FD86;
 Reference = N6;
-ValeurCmp = OKI-77SR-5/1.5-W36-C;
+ValeurCmp = OKI-78SR-5/1.5-W36-C;
 IdModule  = bus_beaglebone:OKI_DC_TO_DC_CONNECTOR;
 EndCmp
 
@@ -192,7 +192,7 @@ EndCmp
 BeginCmp
 TimeStamp = /54308E62;
 Reference = R1;
-ValeurCmp = 22K;
+ValeurCmp = 22K_SIP5;
 IdModule  = bus_beaglebone:Pin_Header_Straight_1x05;
 EndCmp
 
@@ -241,7 +241,7 @@ EndCmp
 BeginCmp
 TimeStamp = /54309581;
 Reference = R8;
-ValeurCmp = 33K;
+ValeurCmp = 33K_SIP5;
 IdModule  = bus_beaglebone:Pin_Header_Straight_1x05;
 EndCmp
 
