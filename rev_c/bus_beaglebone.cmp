@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sat 18 Oct 2014 11:53:33 PM PDT
+Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Sun 19 Oct 2014 11:02:10 AM PDT
 
 BeginCmp
 TimeStamp = /5443556B;
@@ -106,6 +106,13 @@ IdModule  = bus_beaglebone:MountingHole_3mm;
 EndCmp
 
 BeginCmp
+TimeStamp = /53E3C102;
+Reference = H5;
+ValeurCmp = OSHW_LOGO;
+IdModule  = bus_beaglebone:OSHW_LOGO_250mil;
+EndCmp
+
+BeginCmp
 TimeStamp = /53E3E1E4;
 Reference = J1;
 ValeurCmp = TERMINATE_JUMPER;
@@ -187,6 +194,27 @@ TimeStamp = /53E8703D;
 Reference = N10;
 ValeurCmp = BBB_P9_HEADER;
 IdModule  = bus_beaglebone:Pin_Header_Straight_2x23;
+EndCmp
+
+BeginCmp
+TimeStamp = /54442E93;
+Reference = N11;
+ValeurCmp = KEY;
+IdModule  = bus_beaglebone:Pin_Header_Straight_1x01;
+EndCmp
+
+BeginCmp
+TimeStamp = /54442F50;
+Reference = N12;
+ValeurCmp = KEY;
+IdModule  = bus_beaglebone:Pin_Header_Straight_1x01;
+EndCmp
+
+BeginCmp
+TimeStamp = /54442FA5;
+Reference = N13;
+ValeurCmp = KEY;
+IdModule  = bus_beaglebone:Pin_Header_Straight_1x01;
 EndCmp
 
 BeginCmp
@@ -309,15 +337,8 @@ IdModule  = bus_beaglebone:Crystal_HC49-U_Vertical;
 EndCmp
 
 BeginCmp
-TimeStamp = /53E3C102;
+TimeStamp = /5443F93A;
 Reference = X2;
-ValeurCmp = OSHW_LOGO;
-IdModule  = bus_beaglebone:OSHW_LOGO_250mil;
-EndCmp
-
-BeginCmp
-TimeStamp = /54435062;
-Reference = X3;
 ValeurCmp = 32.768KHz;
 IdModule  = bus_beaglebone:RTC_CRYSTAL;
 EndCmp

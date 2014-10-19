@@ -304,12 +304,12 @@ the power supply to ground.
 
 ## Rev. B Issues
 
-* Move N10 closer to the PCB edge.
-
-* Think about expanding N10 from 46 to 50 pins.  This allows the two
-  pins on each end to be jamed with jumpers to provid a poor man's
-  shroud.
+* Move N10 closer to the PCB edge. [x]
 
 * Think about add two pins next to N10 to prevent miss aligning
-  N10 along the P9 row.
+  N10 along the P9 row.  [Added N11, N12, and N13]
+
+* Added real time clock. [x]
+
+
 

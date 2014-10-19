@@ -56,6 +56,10 @@ $CMP FTDI_HEADER
 D 6-pin FTDI USB to Serial Connector
 $ENDCMP
 #
+$CMP KEY
+D Fake Shrouding Key
+$ENDCMP
+#
 $CMP LED
 D Light Emitting Diode (Vertical)
 $ENDCMP
@@ -98,6 +102,10 @@ $ENDCMP
 #
 $CMP REGULATOR_CONNECTOR
 D Oki Regulator Connector
+$ENDCMP
+#
+$CMP RTC_CRYSTAL
+D Crystal
 $ENDCMP
 #
 $CMP R_HORIZ
