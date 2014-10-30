@@ -37,8 +37,8 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Bus Beagle Bone Black"
-Date "Sat 04 Oct 2014"
-Rev "B"
+Date "Sun 19 Oct 2014"
+Rev "C"
 Comp ""
 Comment1 ""
 Comment2 ""
