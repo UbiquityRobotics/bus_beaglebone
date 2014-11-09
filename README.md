@@ -311,5 +311,152 @@ the power supply to ground.
 
 * Added real time clock. [x]
 
+## Rev. C Issues
+
+* Pin 10 of U1 has no 100K pull-up.
+
+* ISP connector is too close to real time clock to work with the
+  Atmel-ICE programmer.  There is actually plenty of room around
+  the crystal and load capacitors.
+
+* The hole for the plus terminal of the Litium battery is way
+  too big.
+
+* The 5mm Terminal blocks are oriented backwards.
+
+* Think about changing the 1x1 mis-alignment pins for the
+  BBB connector to 1x2's.  They would be easier to install.
+
+* Think about removing the R9/R10 pull-up resistors.  The BBB
+  already has pull-up resistors.
+
+* The Lithium battery overlaps with the JTAG connector.  Perhaps
+  rearrange.
+
+* There is no filter capacitor for the real time clock.
+
+* The RC constant of R4 * (C6 + C8) needs to be small enough
+  that the circuit will actually reset before jumping to location 0.
+  When both C6 and C8 are 1uF, the RC constant is too big.
+  Thus, probably C6 and C8 should be set to .1uF.
+
+* N7 is too close to N6.  It is really hard to jumper the LED
+  to be connected to D13.
 
 
+
+
+## ROS Integration
+
+It is desirable to have excellent ROS integration with "the bus".
+The bus has the following features:
+
+* Discovery.  The head processor can scan the bus and find all
+  modules that are plugged into it.  Currently, hot plugging
+  is not allowed, but it could if future versions.
+
+* Flexibility.  While bus modules can be dedicated to a single
+  task, some of them are more fleximble.  For example,
+
+  * bus_grove12 can be connected to 100+ different Grove system modules.
+
+  * bus_micro?? can be connected to 100+ diffeent MikroBus modules.
+
+  * bus_dynabus can be connected to dozens of Dynamixel servos.
+
+* Field Upgradable. The firmware for each module can be upgraded
+  of the bus.
+
+The bus is basically operated in a master/slave mode.  ROS talks
+to a bus master (e.g. bus_beaglebone) via a serial protocol.
+The bus master talks to the bus modules using bus protocol.
+
+The ROS bus node is a ROS node that talks to the bus master
+over a serial line.  Only the ROS bus node is allowed to use
+the serial line connected to the bus master.  Any other ROS
+nodes that need to access the bus must do so through the ROS
+Bus node.
+
+It is anticipated that each bus module will have a corresponding
+ROS node that is responsible for the bus module.  
+
+correspondance to bus modules and a ROS node to control the
+bus module.  For example, the bus_sonar10 module will have
+a didicated ROS Sonar10 node.  
+
+### ROS Bus Node
+
+The basic concept behind the ROS Bus Node is that allows other
+ROS nodes to talk to the bus via a modes number of ROS service
+(i.e. Remote Procedure Call) requests.
+
+        login("node id TBD") => session
+            Returns a session handle for subsequent requests.
+
+        logout(session)
+            Lets Bus Node that session is not to be accepted
+            anymore.
+
+        bus_search(session, vendor_id, product_id) => [bus_uid,...]
+            Return list of bus_uid's for bus modules that match
+            vendor_id and product_id.  vendor_id and product_id
+            can be set to 0 to matach all.
+
+        hardware_version(session, bus_uid) => hardware_version
+            Return the hardware version for bus_uid.
+
+        firmware_version(session, bus_uid) => (major, minor)
+            Return the major and minor software version numbers
+            for bus_uid.
+
+        attach(session, bus_uid, share) => module
+            Returns a module handle for talking to the bus_id.
+            Set share to 1 for a sharable module and to 0 for
+            exclusive use.
+
+        release(session, module)
+            Releases module.
+
+        transfer(session, module, priority, [byte, ...]) => [byte, ...]
+            This is the generic bus message send receive message.
+            Mostly, people will use higher level commands.  Priority
+            specifies the immediacy of the message.
+
+        register_get(session, module, priority, register) => value
+            Set register to value.  Value is is a scalar value
+            that is up to 32-bits.
+
+        register_set(session, module, priority, register, value, size)
+            Set register to value.  Value is is a scalar value
+            that is up to 32-bits in size.  size specifies the number
+            bytes.
+
+        string_get(session, module, priority, register) => "text"
+            Get a string value from a string register.
+
+## Bus_Bridge_Encoders_Sonar Node
+
+Basically this node has to emulate the functionality of the
+ROS Arduino Bridge.
+
+* Publish odometry data
+
+* Accept drive requests (i.e. speed and twist)
+
+* Publish sonar data
+
+## Serial Line Protocol
+
+        Host => Coprocessor:
+
+            1100 00hh        Set hh
+            1100 0100        Do Discovery scan
+            1100 0101        Reset bus
+            1100 0110        Reserved
+            1100 0111        Reserved
+
+            xyyy yyyy        if (hh > 0) { send (h hyyy yyyy); hh = -1; }
+                                     else      { send (0 xyyy yyyy); }
+
+        Coprocessor => Host:
+            a xxxx xxxx	     Send xxxx xxxx to host (9th bit is lost)
