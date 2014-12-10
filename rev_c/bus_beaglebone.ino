@@ -109,6 +109,7 @@ void Bus_Serial__frame_put(Frame frame) {
 void setup() {
   // Initialize the debugging serial port:
   Serial.begin(115200);
+  Serial.write("\r\nbus_beaglebone\r\n");
 
   // Initialzed the bus serial port:
   Bus_Serial__initialize(BUS_BAUD_500KBPS);
@@ -124,18 +125,28 @@ void setup() {
 }
 
 // The loop routine runs over and over again forever:
-Frame frame = (Frame)'@';
+Frame send_frame = (Frame)'@';
 void loop() {
   // Output *frame*:
-  Bus_Serial__frame_put(frame);
+  Bus_Serial__frame_put(send_frame);
+  Frame echo_frame = Bus_Serial__frame_get();
+  if (echo_frame != send_frame) {
+    Serial.write('@');
+  }
+  Frame receive_frame = Bus_Serial__frame_get();
 
-  // Deal with *frame* incrementing past 32 characters:
-  if (frame == '_') {
-      Bus_Serial__frame_put((Frame)'\r');
-      Bus_Serial__frame_put((Frame)'\n');
-      frame = (Frame)'@';
+  if (send_frame == receive_frame) {
+    Serial.write(receive_frame);
   } else {
-      frame += (Frame)1;
+    Serial.write('!');
+  }
+
+  if (send_frame == '_') {
+    Serial.write('\r');
+    Serial.write('\n');
+    send_frame = (Frame)'@';
+  } else {
+    send_frame += (Frame)1;
   }
 
   // Blink the *LED* some:
@@ -143,5 +154,6 @@ void loop() {
   digitalWrite(LED, LOW);
   delay(100);
   digitalWrite(LED, HIGH);
+
 }
 
