@@ -1,104 +1,147 @@
 // Copyright (c) 2014 by Wayne C. Gramlich.  All rights reserved.
-// Copyright (c) 2014 by Kurt Chrsitofferson.  All rights reserved.
 //
-// This code drives the bus_sonar10 module.
+// This code drives the bus_beagle_bone_black board.
 
-// Sonars are organized in trigger/echo pairs.  There are
-// 10 sonars (SONARS_SIZE == 10).  In order to 1) conserve
-// pins and 2) ensure that each echo return is routed to
-// a pin connected to one of the 6 counter/timer pins,
-// some sonars share an echo pin.  Thus, sonar 0/1, 3/4,
-// 5/6, and 8/9 can not both be triggered at the same time.
+#define UART1_DISABLED
 
+#define BUS_STANDBY       3
+#define BUS_BAUD_500KBPS  3 // Fosc=16MHz & U2X1=1
+#define LED		 13
 
-#define SONARS_SIZE 10
-#define S0 1
-#define S1 2
-#define S2 4
-#define S3 8
-#define S4 16
-#define S5 32
-#define S6 64
-#define S7 128
-#define S8 256
-#define S9 512
+// typedef's go here:
+typedef unsigned char Bool8;
+typedef unsigned char Byte;
+typedef unsigned short Frame;
+typedef struct Frame_Buffer__Struct *Frame_Buffer;
+typedef unsigned short UInt16;
 
-struct Sonar_Struct {
-  uint8_t trigger;
-  uint8_t echo;
-  uint16_t doit;
-} sonars[SONARS_SIZE] = {
-  (uint8_t)A1, (uint8_t)9,  (uint16_t)S0, // sonars[0]
-  (uint8_t)13, (uint8_t)9,  (uint16_t)S1, // sonars[1]
-  (uint8_t)A0, (uint8_t)6,  (uint16_t)S2, // sonars[2]
-  (uint8_t)12, (uint8_t)5,  (uint16_t)S3, // sonars[3]
-  (uint8_t)8,  (uint8_t)5,  (uint16_t)S4, // sonars[4]
-  (uint8_t)A3, (uint8_t)11, (uint16_t)S5, // sonars[5]
-  (uint8_t)A2, (uint8_t)11, (uint16_t)S6, // sonars[6]
-  (uint8_t)7,  (uint8_t)10, (uint16_t)S7, // sonars[7]
-  (uint8_t)4,  (uint8_t)3,  (uint16_t)S8, // sonars[8]
-  (uint8_t)2,  (uint8_t)3,  (uint16_t)S9, // sonars[9]
-};
+void Bus_Serial__initialize(Byte baud_lsb) {
+    // Clear out the three USART1 control/status registers:
+    UCSR1A = 0;
+    UCSR1B = 0;
+    UCSR1C = 0;
 
-extern void readSonarSet(uint16_t mask);
+    // Set the UART1 into Asynchronous mode (set PC:UMSEL11,PC:UMSEL10) = (0,0):
+    //UCSR1C &= ~(1<<UMSEL11);
+    //UCSR1C &= ~(1<<UMSEL10);
 
-// the setup routine runs once when you press reset:
-void setup() {
-  // Initialize the Serial Port:
-  Serial.begin(115200);
-  
-  // Initialize the trigger/echo pin pairs:
-  for (uint8_t index = 0; index < SONARS_SIZE; index++) {
-    pinMode(sonars[index].trigger, OUTPUT);
-    pinMode(sonars[index].echo, INPUT);
-  }
-}
+    // Set the UART1 into no parity mode (set PC:UPM11,PC:UPM10) = (0,0):
+    //UCSR1C &= ~(1<<UPM11);
+    //UCSR1C &= ~(1<<UPM10);
 
-// the loop routine runs over and over again forever:
-void loop() {
-   readSonarSet( S0 | S9 | S1 | S8 );
-   readSonarSet( S0 | S9 | S1 | S8 | S2 | S7 );
-   readSonarSet( S0 | S9 | S1 | S8 | S2 | S7 | S3 | S4 | S5  | S6 );
-}
+    // Set the UART1 to have 1 stop bit (Set PC:USBS1) = (0):
+    //UCSR1C &= ~(1<<USBS1);
 
-void readSonarSet(uint16_t mask) {
-  // Read all sonars in the mask:
-  for (uint8_t index = 0; index < SONARS_SIZE; index++) {
-    if (sonars[index].doit & mask) {
-      // Trigger the sonar:
-      uint8_t trigger = sonars[index].trigger;
-      digitalWrite(trigger, LOW);
-      delayMicroseconds(10);
-      digitalWrite(trigger, HIGH);
-      delayMicroseconds(10);
-      digitalWrite(trigger, LOW);
-      delayMicroseconds(5);
-    
-      // Time the echo pulse:
-      uint8_t echo = sonars[index].echo;
-      uint32_t duration = pulseIn(echo, HIGH);
+    // Put USART1 into 9 bit mode (set PB:UCSZ12,PC:UCSZ11,PC:UCSZ10) = (1,1,1):
+    UCSR1B |= 1<<UCSZ12;
+    UCSR1C |= 1<<UCSZ11 | 1<<UCSZ10;
 
-      // Print out the result:
-      /*
-      uint32_t inches = duration / 74 / 2;
-      uint32_t centimeters = duration / 29 / 2;
-      Serial.print("Sonar[");
-      Serial.print(index);
-      Serial.print("]: ");
-      Serial.print(centimeters);
-      Serial.print("cm ");
-      Serial.print(inches);
-      Serial.print("in ");
-      Serial.print(duration);
-      Serial.print("raw\r\n");
-      */
+    // Ignore Clock Polarity:
+    //UCSR1C &= ~(1<<UCPOL1);
 
-      //ROS standard sensor_msgs/Range.msg is in meters.
-      float meters = duration / 29 / 200;
-      Serial.print(index);
-      Serial.print("=");
-      Serial.print(meters);
-      Serial.print("\r\n");
+    // Disable multi-processor comm. mode (PA:MCPM1) = (0)
+    //UCSR1A &= ~(1<<MPCM1);
+
+    // Set UART1 baud rate for double data rate:
+    UBRR1H = 0;
+    UBRR1L = baud_lsb;
+    UCSR1A |= 1<<U2X1;
+
+    // Enable UART1:
+    UCSR1B |= 1<<RXEN1;
+    UCSR1B |= 1<<TXEN1;
+} 
+
+Bool8 Bus_Serial__can_receive(void) {
+    Bool8 can_receive = (Bool8)0;
+    if ((UCSR1A & (1<<RXC1)) != 0) {
+	can_receive = (Bool8)1;
     }
-  }
+    return can_receive;
 }
+
+Bool8 Bus_Serial__can_transmit(void) {
+    Bool8 can_transmit = (Bool8)0;
+    if ((UCSR1A & (1<<UDRE1)) != 0) {
+	can_transmit = (Bool8)1;
+    }
+    return can_transmit;
+}
+
+Frame Bus_Serial__frame_get(void) {
+    // Wait for a frame (9-bits) to show up in the receive buffer:
+    while (!((UCSR1A & (1<<RXC1)) != 0)) {
+	// Do nothing:
+    }
+
+    // Deal with address bit:
+    Frame frame = 0;
+    if ((UCSR1B & (1<<RXB81)) != 0) {
+	// Set the address bit:
+	frame = 0x100;
+    }
+
+    // Read in the rest of the *frame*:
+    frame |= (Frame)UDR1;
+    return frame;
+}
+
+void Bus_Serial__frame_put(Frame frame) {
+    // Wait for space in the transmit buffer:
+    while (!((UCSR1A & (1<<UDRE1)) != 0)) {
+        // do_nothing:
+    }
+
+    // Properly deal with adress bit:
+    if ((frame & 0x100) == 0) {
+	// No address bit:
+	UCSR1B &= ~(1<<TXB81);
+    } else {
+	// Set the address bit:
+	UCSR1B |= 1<<TXB81;
+    }
+
+    // Force *frame* out:
+    UDR1 = (Byte)frame;
+}
+
+// The setup routine runs once when you press reset:
+void setup() {
+  // Initialize the debugging serial port:
+  Serial.begin(115200);
+
+  // Initialzed the bus serial port:
+  Bus_Serial__initialize(BUS_BAUD_500KBPS);
+
+  // Turn the *LED* on:
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, HIGH);
+
+  // Force the standby pin on the CAN transeciever to low to force it
+  // into active mode:
+  pinMode(BUS_STANDBY, OUTPUT);
+  digitalWrite(BUS_STANDBY, LOW);
+}
+
+// The loop routine runs over and over again forever:
+Frame frame = (Frame)'@';
+void loop() {
+  // Output *frame*:
+  Bus_Serial__frame_put(frame);
+
+  // Deal with *frame* incrementing past 32 characters:
+  if (frame == '_') {
+      Bus_Serial__frame_put((Frame)'\r');
+      Bus_Serial__frame_put((Frame)'\n');
+      frame = (Frame)'@';
+  } else {
+      frame += (Frame)1;
+  }
+
+  // Blink the *LED* some:
+  delay(100);
+  digitalWrite(LED, LOW);
+  delay(100);
+  digitalWrite(LED, HIGH);
+}
+
