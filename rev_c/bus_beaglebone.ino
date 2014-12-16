@@ -2,6 +2,8 @@
 //
 // This code drives the bus_beagle_bone_black board.
 
+#include "Bus.h"
+
 #define TEST_BUS_OUTPUT 1
 #define TEST_BUS_ECHO 2
 #define TEST_BUS_COMMAND 3
@@ -17,10 +19,11 @@
 
 // typedef's go here:
 typedef unsigned char Bool8;
-typedef unsigned char Byte;
 typedef unsigned short Frame;
 typedef struct Frame_Buffer__Struct *Frame_Buffer;
 typedef unsigned short UInt16;
+
+Bus bus;
 
 void Bus_Serial__initialize(Byte baud_lsb) {
     // Clear out the three USART1 control/status registers:
@@ -334,130 +337,123 @@ Byte Bus_Serial__command_byte_get(Frame address, Byte command) {
   return byte;
 }
 
-#if TEST == TEST_BUS_COMMAND
-
 void loop() {
-  // Blink the *LED* some:
-  Serial.write("[");
-  Bus_Serial__command_byte_put(ADDRESS, LED_PUT, HIGH);
-  Bool8 led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
-  if (led_get == 0) {
-    digitalWrite(LED, LOW);
-  } else {
-    digitalWrite(LED, HIGH);
-  }
-  Serial.write("]\r\n\r\n");
-  delay(100);
+  switch (TEST) {
+    case TEST_BUS_COMMAND: {
+      // Blink the *LED* some:
+      Serial.write("[");
+      Bus_Serial__command_byte_put(ADDRESS, LED_PUT, HIGH);
+      Bool8 led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
+      if (led_get == 0) {
+	digitalWrite(LED, LOW);
+      } else {
+	digitalWrite(LED, HIGH);
+      }
+      Serial.write("]\r\n\r\n");
+      delay(100);
 
-  Bus_Serial__command_byte_put(ADDRESS, LED_PUT, LOW);
-  led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
-  if (led_get == 0) {
-    digitalWrite(LED, LOW);
-  } else {
-    digitalWrite(LED, HIGH);
-  }
-  delay(100);
-}
+      Bus_Serial__command_byte_put(ADDRESS, LED_PUT, LOW);
+      led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
+      if (led_get == 0) {
+	digitalWrite(LED, LOW);
+      } else {
+	digitalWrite(LED, HIGH);
+      }
+      delay(100);
+      break;
+    }
+    case TEST_BUS_ECHO: {
+      static Frame send_frame;
 
-#endif // TEST == TEST_BUS_COMMAND
+      if (send_frame < '@' || send_frame > '_') {
+	send_frame = (Frame)'@';
+      }
 
-#if TEST == TEST_BUS_ECHO
-
-void loop() {
-  static Frame send_frame;
-
-  if (send_frame < '@' || send_frame > '_') {
-    send_frame = (Frame)'@';
-  }
-
-  // Output *frame*:
-  Bus_Serial__frame_put(send_frame);
-  Frame echo_frame = Bus_Serial__frame_get();
-  if (echo_frame != send_frame) {
-    Serial.write('!');
-  }
-  Frame receive_frame = Bus_Serial__frame_get();
+      // Output *frame*:
+      Bus_Serial__frame_put(send_frame);
+      Frame echo_frame = Bus_Serial__frame_get();
+      if (echo_frame != send_frame) {
+        Serial.write('!');
+      }
+      Frame receive_frame = Bus_Serial__frame_get();
   
-  if (send_frame == receive_frame) {
-    Serial.write(receive_frame);
-  } else {
-    Serial.write('$');
-  }
+      if (send_frame == receive_frame) {
+	Serial.write(receive_frame);
+      } else {
+	Serial.write('$');
+      }
   
-  delay(100);
-  if ((receive_frame & 1) == 0) {
-    digitalWrite(LED, LOW);
-  } else {
-    digitalWrite(LED, HIGH);
-  }
+      delay(100);
+      if ((receive_frame & 1) == 0) {
+	digitalWrite(LED, LOW);
+      } else {
+	digitalWrite(LED, HIGH);
+      }
 
-  delay(100);
-  if ((receive_frame & 1) == 0) {
-    digitalWrite(LED, HIGH);
-  } else {
-    digitalWrite(LED, LOW);
-  }
+      delay(100);
+      if ((receive_frame & 1) == 0) {
+	digitalWrite(LED, HIGH);
+      } else {
+	digitalWrite(LED, LOW);
+      }
 
-  if (send_frame == '_') {
-    Serial.write("\r\n");
-    send_frame = (Frame)'@';
-  } else {
-    send_frame += (Frame)1;
-  }
+      if (send_frame == '_') {
+	Serial.write("\r\n");
+	send_frame = (Frame)'@';
+      } else {
+	send_frame += (Frame)1;
+      }
+      break;
+    }
+    case TEST_BUS_OUTPUT: {
+      // This verision of loop simply outputs 8-bit characters (in 9-bit mode)
+      // to the bus starting from '@' to '_' and repeating.  The primary purpose
+      // is to verify that both UART's are properly initialized to reasonable
+      // baud rates.  We also ensure that the bus is terminated and the
+      // CAN bus transceiver is on.
 
+      // *frame* is a static variable:
+      static Frame frame;
+
+      // Make sure *frame* is "in bounds":
+      if (frame < '@' || frame > '_') {
+	frame = '@';
+      }
+
+      // Output *frame* to bus:
+      Bus_Serial__frame_put(frame);
+
+      // Set LED to be the same as the LSB of *frame*:
+      if ((frame & 1) == 0) {
+	digitalWrite(LED, LOW);
+      } else {
+	digitalWrite(LED, HIGH);
+      }
+
+      // Delay some:
+      delay(100);
+
+      // Output *frame* back to user for debugging:
+      Serial.write(frame);
+      if (frame >= '_') {
+	Serial.write("\r\n");
+        frame = '@';
+      } else {
+	frame += 1;
+      }
+
+      // Set LED to be the opposite of the *frame* LSB:
+      if ((frame & 1) == 0) {
+	digitalWrite(LED, HIGH);
+      } else {
+	digitalWrite(LED, LOW);
+      }
+
+      // Delay some more:
+      delay(100);
+
+      break;
+    }
+  }
 }
-
-#endif // TEST == TEST_BUS_ECHO
-
-#if TEST == TEST_BUS_OUTPUT
-
-// This verision of loop simply outputs 8-bit characters (in 9-bit mode)
-// to the bus starting from '@' to '_' and repeating.  The primary purpose
-// is to verify that both UART's are properly initialized to reasonable
-// baud rates.  We also ensure that the bus is terminated and the
-// CAN bus transceiver is on.
-
-void loop() {
-  // *frame* is a static variable:
-  static Frame frame;
-
-  // Make sure *frame* is "in bounds":
-  if (frame < '@' || frame > '_') {
-    frame = '@';
-  }
-
-  // Output *frame* to bus:
-  Bus_Serial__frame_put(frame);
-
-  // Set LED to be the same as the LSB of *frame*:
-  if ((frame & 1) == 0) {
-    digitalWrite(LED, LOW);
-  } else {
-    digitalWrite(LED, HIGH);
-  }
-
-  // Delay some:
-  delay(100);
-
-  // Output *frame* back to user for debugging:
-  Serial.write(frame);
-  if (frame >= '_') {
-    Serial.write("\r\n");
-    frame = '@';
-  } else {
-    frame += 1;
-  }
-
-  // Set LED to be the opposite of the *frame* LSB:
-  if ((frame & 1) == 0) {
-    digitalWrite(LED, HIGH);
-  } else {
-    digitalWrite(LED, LOW);
-  }
-
-  // Delay some more:
-  delay(100);
-}
-
-#endif // TEST == TEST_BUS_OUTPUT
 
