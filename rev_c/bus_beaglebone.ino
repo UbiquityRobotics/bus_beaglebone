@@ -14,14 +14,8 @@
 
 #define BUS_STANDBY       3
 #define BUS_BAUD_500KBPS  3 // Fosc=16MHz & U2X1=1
-#define BUS_NO_ADDRESS   ((Frame)-1)
+#define BUS_NO_ADDRESS   ((UShort)-1)
 #define LED		 13
-
-// typedef's go here:
-typedef unsigned char Bool8;
-typedef unsigned short Frame;
-typedef struct Frame_Buffer__Struct *Frame_Buffer;
-typedef unsigned short UInt16;
 
 Bus bus;
 
@@ -62,41 +56,41 @@ void Bus_Serial__initialize(Byte baud_lsb) {
     UCSR1B |= 1<<TXEN1;
 } 
 
-Bool8 Bus_Serial__can_receive(void) {
-    Bool8 can_receive = (Bool8)0;
+Logical Bus_Serial__can_receive(void) {
+    Logical can_receive = (Logical)0;
     if ((UCSR1A & (1<<RXC1)) != 0) {
-	can_receive = (Bool8)1;
+	can_receive = (Logical)1;
     }
     return can_receive;
 }
 
-Bool8 Bus_Serial__can_transmit(void) {
-    Bool8 can_transmit = (Bool8)0;
+Logical Bus_Serial__can_transmit(void) {
+    Logical can_transmit = (Logical)0;
     if ((UCSR1A & (1<<UDRE1)) != 0) {
-	can_transmit = (Bool8)1;
+	can_transmit = (Logical)1;
     }
     return can_transmit;
 }
 
-Frame Bus_Serial__frame_get(void) {
+UShort Bus_Serial__frame_get(void) {
     // Wait for a frame (9-bits) to show up in the receive buffer:
     while (!((UCSR1A & (1<<RXC1)) != 0)) {
 	// Do nothing:
     }
 
     // Deal with address bit:
-    Frame frame = 0;
+    UShort frame = 0;
     if ((UCSR1B & (1<<RXB81)) != 0) {
 	// Set the address bit:
 	frame = 0x100;
     }
 
     // Read in the rest of the *frame*:
-    frame |= (Frame)UDR1;
+    frame |= (UShort)UDR1;
     return frame;
 }
 
-void Bus_Serial__frame_put(Frame frame) {
+void Bus_Serial__frame_put(UShort frame) {
     // Wait for space in the transmit buffer:
     while (!((UCSR1A & (1<<UDRE1)) != 0)) {
         // do_nothing:
@@ -135,14 +129,14 @@ void setup() {
 }
 
 // The loop routine runs over and over again forever:
-//Frame send_frame = (Frame)'@';
+//UShort send_frame = (UShort)'@';
 
-#define ADDRESS ((Frame)0x121)
+#define ADDRESS ((UShort)0x121)
 #define LED_GET 0
 #define LED_PUT 1
 #define BUFFER_SIZE 16
 
-Frame Bus_Serial__address = BUS_NO_ADDRESS;
+UShort Bus_Serial__address = BUS_NO_ADDRESS;
 Byte Bus_Serial__put_index = 0;
 Byte Bus_Serial__put_check_sum = 0;
 Byte Bus_Serial__get_index = 0;
@@ -151,8 +145,8 @@ Byte Bus_Serial__get_size = 0;
 Byte Bus_Serial__put_buffer[BUFFER_SIZE];
 Byte Bus_Serial__get_buffer[BUFFER_SIZE];
 
-Bool8 Bus_Serial__address_put() {
-  Bool8 error = (Bool8)0;
+Logical Bus_Serial__address_put() {
+  Logical error = (Logical)0;
 
   // Make sure that the input buffer has nothing:
   while (Bus_Serial__can_receive()) {
@@ -164,29 +158,29 @@ Bool8 Bus_Serial__address_put() {
 
   // Send the address and get the *address_echo*:
   Bus_Serial__frame_put(Bus_Serial__address);
-  Frame address_echo = Bus_Serial__frame_get();
+  UShort address_echo = Bus_Serial__frame_get();
   if (Bus_Serial__address != address_echo) {
     Serial.write('!');
-    error = (Bool8)1;
+    error = (Logical)1;
   }
 
   // If the address is an upper half address, wait for an acknoledge:
   if ((Bus_Serial__address & 0x80) == 0) {
-    Frame address_acknowledge = Bus_Serial__frame_get();
+    UShort address_acknowledge = Bus_Serial__frame_get();
 	
     Serial.write('r');
     Serial.print(address_acknowledge, HEX);
 
     if (address_acknowledge != 0) {
       Serial.write('!');
-      error = (Bool8)1;
+      error = (Logical)1;
     }
   }
   return error;
 }
 
-Bool8 Bus_Serial__buffer_get() {
-  Bool8 error = (Bool8)0;
+Logical Bus_Serial__buffer_get() {
+  Logical error = (Logical)0;
   // Read combined *count_check_sum*:
   Byte count_check_sum = (Byte)Bus_Serial__frame_get();
 
@@ -217,14 +211,14 @@ Bool8 Bus_Serial__buffer_get() {
 
   if (check_sum != computed_check_sum) {
     Serial.write('!');
-    error = (Bool8)1;
+    error = (Logical)1;
   }
   return error;
 }
 
 // Send the contents of *Bus_Serial__put_buffer* to the bus:
-Bool8 Bus_Serial__buffer_put() {
-  Bool8 error = (Bool8)0;
+Logical Bus_Serial__buffer_put() {
+  Logical error = (Logical)0;
 
   // Compute the 4-bit *check_sum*:
   Byte check_sum = Bus_Serial__put_check_sum;
@@ -232,32 +226,32 @@ Bool8 Bus_Serial__buffer_put() {
 
   // Send *count_check_sum*:
   Byte size = Bus_Serial__put_index & 0xf;
-  Frame count_check_sum = (size << 4) | check_sum;
+  UShort count_check_sum = (size << 4) | check_sum;
 
   Serial.write("P");
   Serial.print(count_check_sum, HEX);
 
   Bus_Serial__frame_put(count_check_sum);
-  Frame count_check_sum_echo = Bus_Serial__frame_get();
+  UShort count_check_sum_echo = Bus_Serial__frame_get();
   if (count_check_sum == count_check_sum_echo) {
     // Send the buffer:
     for (Byte index = 0; index < size; index++) {
-      Frame put_frame = Bus_Serial__put_buffer[index];
+      UShort put_frame = Bus_Serial__put_buffer[index];
 
       Serial.write("P");
       Serial.print(put_frame, HEX);
 
       Bus_Serial__frame_put(put_frame);
-      Frame put_frame_echo = Bus_Serial__frame_get();
+      UShort put_frame_echo = Bus_Serial__frame_get();
       if (put_frame != put_frame_echo) {
         Serial.write('&');
-        error = (Bool8)1;
+        error = (Logical)1;
         break;
       }
     }
   } else {
     // *count_check_sum_echo* did not match *count_check_sum*:
-    error = (Bool8)1;
+    error = (Logical)1;
   }
 
   // We mark *Bus_Serial__put_buffer* as sent:
@@ -266,9 +260,9 @@ Bool8 Bus_Serial__buffer_put() {
   return error;
 }
 
-Bool8 Bus_Serial__flush(void) {
+Logical Bus_Serial__flush(void) {
   Serial.write("{");
-  Bool8 error = (Bool8)1;
+  Logical error = (Logical)1;
   for (Byte retries = 0; error && retries < 5; retries++) {
     Serial.write("<");
 
@@ -308,7 +302,7 @@ Byte Bus_Serial__byte_get(void) {
   return byte;
 }
 
-void Bus_Serial__command_put(Frame address, Byte command) {
+void Bus_Serial__command_put(UShort address, Byte command) {
   Serial.write('A');
   if (Bus_Serial__address != address && Bus_Serial__address != BUS_NO_ADDRESS) {
     Serial.write('B');
@@ -322,12 +316,12 @@ void Bus_Serial__command_put(Frame address, Byte command) {
   Serial.write('F');
 }
 
-void Bus_Serial__command_byte_put(Frame address, Byte command, Byte byte) {
+void Bus_Serial__command_byte_put(UShort address, Byte command, Byte byte) {
   Bus_Serial__command_put(address, command);
   Bus_Serial__byte_put(byte);
 }
 
-Byte Bus_Serial__command_byte_get(Frame address, Byte command) {
+Byte Bus_Serial__command_byte_get(UShort address, Byte command) {
   Serial.write('a');
   Bus_Serial__command_put(address, command);
   Serial.write('b');
@@ -343,7 +337,7 @@ void loop() {
       // Blink the *LED* some:
       Serial.write("[");
       Bus_Serial__command_byte_put(ADDRESS, LED_PUT, HIGH);
-      Bool8 led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
+      Logical led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
       if (led_get == 0) {
 	digitalWrite(LED, LOW);
       } else {
@@ -363,19 +357,19 @@ void loop() {
       break;
     }
     case TEST_BUS_ECHO: {
-      static Frame send_frame;
+      static UShort send_frame;
 
       if (send_frame < '@' || send_frame > '_') {
-	send_frame = (Frame)'@';
+	send_frame = (UShort)'@';
       }
 
       // Output *frame*:
       Bus_Serial__frame_put(send_frame);
-      Frame echo_frame = Bus_Serial__frame_get();
+      UShort echo_frame = Bus_Serial__frame_get();
       if (echo_frame != send_frame) {
         Serial.write('!');
       }
-      Frame receive_frame = Bus_Serial__frame_get();
+      UShort receive_frame = Bus_Serial__frame_get();
   
       if (send_frame == receive_frame) {
 	Serial.write(receive_frame);
@@ -399,9 +393,9 @@ void loop() {
 
       if (send_frame == '_') {
 	Serial.write("\r\n");
-	send_frame = (Frame)'@';
+	send_frame = (UShort)'@';
       } else {
-	send_frame += (Frame)1;
+	send_frame += (UShort)1;
       }
       break;
     }
@@ -413,7 +407,7 @@ void loop() {
       // CAN bus transceiver is on.
 
       // *frame* is a static variable:
-      static Frame frame;
+      static UShort frame;
 
       // Make sure *frame* is "in bounds":
       if (frame < '@' || frame > '_') {
