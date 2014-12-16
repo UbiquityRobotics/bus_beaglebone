@@ -116,7 +116,7 @@ void setup() {
   Serial.write("\r\nbus_beaglebone\r\n");
 
   // Initialzed the bus serial port:
-  Bus_Serial__initialize(BUS_BAUD_500KBPS);
+  //Bus_Serial__initialize(BUS_BAUD_500KBPS);
 
   // Turn the *LED* on:
   pinMode(LED, OUTPUT);
@@ -126,6 +126,14 @@ void setup() {
   // into active mode:
   pinMode(BUS_STANDBY, OUTPUT);
   digitalWrite(BUS_STANDBY, LOW);
+
+  switch (TEST) {
+    case TEST_BUS_OUTPUT:
+    case TEST_BUS_ECHO:
+    case TEST_BUS_COMMAND:
+      bus.interrupts_disable();
+      break;
+  }
 }
 
 // The loop routine runs over and over again forever:
@@ -150,15 +158,15 @@ Logical Bus_Serial__address_put() {
 
   // Make sure that the input buffer has nothing:
   while (Bus_Serial__can_receive()) {
-    (void)Bus_Serial__frame_get();
+    bus.frame_get();
   }
 
   Serial.write('R');
   Serial.print(Bus_Serial__address, HEX);
 
   // Send the address and get the *address_echo*:
-  Bus_Serial__frame_put(Bus_Serial__address);
-  UShort address_echo = Bus_Serial__frame_get();
+  bus.frame_put(Bus_Serial__address);
+  UShort address_echo = bus.frame_get();
   if (Bus_Serial__address != address_echo) {
     Serial.write('!');
     error = (Logical)1;
@@ -166,7 +174,7 @@ Logical Bus_Serial__address_put() {
 
   // If the address is an upper half address, wait for an acknoledge:
   if ((Bus_Serial__address & 0x80) == 0) {
-    UShort address_acknowledge = Bus_Serial__frame_get();
+    UShort address_acknowledge = bus.frame_get();
 	
     Serial.write('r');
     Serial.print(address_acknowledge, HEX);
@@ -182,7 +190,7 @@ Logical Bus_Serial__address_put() {
 Logical Bus_Serial__buffer_get() {
   Logical error = (Logical)0;
   // Read combined *count_check_sum*:
-  Byte count_check_sum = (Byte)Bus_Serial__frame_get();
+  Byte count_check_sum = (Byte)bus.frame_get();
 
   Serial.write(':');
   Serial.write('G');
@@ -196,7 +204,7 @@ Logical Bus_Serial__buffer_get() {
   Byte computed_check_sum = 0;
   Serial.write(';');
   for (Byte index = 0; index < size; index++) {
-    Byte byte = (Byte)Bus_Serial__frame_get();
+    Byte byte = (Byte)bus.frame_get();
     Bus_Serial__get_buffer[index] = byte;
     computed_check_sum += byte;
 
@@ -231,8 +239,8 @@ Logical Bus_Serial__buffer_put() {
   Serial.write("P");
   Serial.print(count_check_sum, HEX);
 
-  Bus_Serial__frame_put(count_check_sum);
-  UShort count_check_sum_echo = Bus_Serial__frame_get();
+  bus.frame_put(count_check_sum);
+  UShort count_check_sum_echo = bus.frame_get();
   if (count_check_sum == count_check_sum_echo) {
     // Send the buffer:
     for (Byte index = 0; index < size; index++) {
@@ -241,8 +249,8 @@ Logical Bus_Serial__buffer_put() {
       Serial.write("P");
       Serial.print(put_frame, HEX);
 
-      Bus_Serial__frame_put(put_frame);
-      UShort put_frame_echo = Bus_Serial__frame_get();
+      bus.frame_put(put_frame);
+      UShort put_frame_echo = bus.frame_get();
       if (put_frame != put_frame_echo) {
         Serial.write('&');
         error = (Logical)1;
@@ -364,12 +372,12 @@ void loop() {
       }
 
       // Output *frame*:
-      Bus_Serial__frame_put(send_frame);
-      UShort echo_frame = Bus_Serial__frame_get();
+      bus.frame_put(send_frame);
+      UShort echo_frame = bus.frame_get();
       if (echo_frame != send_frame) {
         Serial.write('!');
       }
-      UShort receive_frame = Bus_Serial__frame_get();
+      UShort receive_frame = bus.frame_get();
   
       if (send_frame == receive_frame) {
 	Serial.write(receive_frame);
@@ -415,7 +423,7 @@ void loop() {
       }
 
       // Output *frame* to bus:
-      Bus_Serial__frame_put(frame);
+      bus.frame_put(frame);
 
       // Set LED to be the same as the LSB of *frame*:
       if ((frame & 1) == 0) {
