@@ -13,51 +13,24 @@
 #define UART1_DISABLED
 
 #define BUS_STANDBY       3
-#define BUS_BAUD_500KBPS  3 // Fosc=16MHz & U2X1=1
 #define BUS_NO_ADDRESS   ((UShort)-1)
 #define LED		 13
 
-Bus bus;
-
-// The setup routine runs once when you press reset:
-void setup() {
-  // Initialize the debugging serial port:
-  Serial.begin(115200);
-  Serial.write("\r\nbus_beaglebone\r\n");
-
-  // Turn the *LED* on:
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, HIGH);
-
-  // Force the standby pin on the CAN transeciever to low to force it
-  // into active mode:
-  pinMode(BUS_STANDBY, OUTPUT);
-  digitalWrite(BUS_STANDBY, LOW);
-
-  switch (TEST) {
-    case TEST_BUS_OUTPUT:
-    case TEST_BUS_ECHO:
-    case TEST_BUS_COMMAND:
-      bus.interrupts_disable();
-      break;
-  }
-}
-
-// The loop routine runs over and over again forever:
-//UShort send_frame = (UShort)'@';
-
-#define ADDRESS ((UShort)0x121)
+#define ADDRESS 0x21
 #define LED_GET 0
 #define LED_PUT 1
 #define BUFFER_SIZE 16
 
+
+Bus bus;
+
 UShort Bus_Serial__address = BUS_NO_ADDRESS;
-Byte Bus_Serial__put_index = 0;
+//Byte Bus_Serial__put_index = 0;
 Byte Bus_Serial__put_check_sum = 0;
 Byte Bus_Serial__get_index = 0;
 Byte Bus_Serial__get_check_sum = 0;
 Byte Bus_Serial__get_size = 0;
-Byte Bus_Serial__put_buffer[BUFFER_SIZE];
+//Byte Bus_Serial__put_buffer[BUFFER_SIZE];
 Byte Bus_Serial__get_buffer[BUFFER_SIZE];
 
 Logical Bus_Serial__address_put() {
@@ -131,144 +104,107 @@ Logical Bus_Serial__buffer_get() {
   return error;
 }
 
-// Send the contents of *Bus_Serial__put_buffer* to the bus:
-Logical Bus_Serial__buffer_put() {
-  Logical error = (Logical)0;
+//Logical Bus_Serial__flush(void) {
+//  Serial.write("{");
+//  Logical error = (Logical)1;
+//  for (Byte retries = 0; error && retries < 5; retries++) {
+//    Serial.write("<");
+//
+//    // Select the address:
+//    error = Bus_Serial__address_put();
+//    if (error) {
+//      Serial.write('!');
+//    } else {
+//      error = Bus_Serial__buffer_put();
+//      if (error) {
+//        Serial.write('@');
+//      } else {
+//        error = Bus_Serial__buffer_get();
+//      }
+//    }
+//
+//    Serial.write(">");
+//  }
+//  Serial.write("}\r\n");
+//  if (error) {
+//    Serial.write('#');
+//  }
+//  return error;
+//}
 
-  // Compute the 4-bit *check_sum*:
-  Byte check_sum = Bus_Serial__put_check_sum;
-  check_sum = (check_sum + (check_sum >> 4)) & 15;
+//void Bus_Serial__byte_put(Byte byte) {
+//  Bus_Serial__put_buffer[Bus_Serial__put_index++] = byte;
+//  Bus_Serial__put_check_sum += byte;
+//}
 
-  // Send *count_check_sum*:
-  Byte size = Bus_Serial__put_index & 0xf;
-  UShort count_check_sum = (size << 4) | check_sum;
+//Byte Bus_Serial__byte_get(void) {
+//  Serial.write('e');
+//  Bus_Serial__flush();
+//  Serial.write('f');
+//  Byte byte = Bus_Serial__get_buffer[Bus_Serial__get_index++];
+//  Serial.write('g');
+//  return byte;
+//}
 
-  Serial.write("P");
-  Serial.print(count_check_sum, HEX);
+//void Bus_Serial__command_byte_put(UShort address, Byte command, Byte byte) {
+//  bus.command_put(address, command);
+//  bus.byte_put(byte);
+//}
 
-  bus.frame_put(count_check_sum);
-  UShort count_check_sum_echo = bus.frame_get();
-  if (count_check_sum == count_check_sum_echo) {
-    // Send the buffer:
-    for (Byte index = 0; index < size; index++) {
-      UShort put_frame = Bus_Serial__put_buffer[index];
-
-      Serial.write("P");
-      Serial.print(put_frame, HEX);
-
-      bus.frame_put(put_frame);
-      UShort put_frame_echo = bus.frame_get();
-      if (put_frame != put_frame_echo) {
-        Serial.write('&');
-        error = (Logical)1;
-        break;
-      }
-    }
+// Set the *LED* to the value of *led*:
+void led_set(Logical led) {
+  if (led) {
+    digitalWrite(LED, HIGH);
   } else {
-    // *count_check_sum_echo* did not match *count_check_sum*:
-    error = (Logical)1;
+    digitalWrite(LED, LOW);
   }
-
-  // We mark *Bus_Serial__put_buffer* as sent:
-  Bus_Serial__put_index = 0;
-  Bus_Serial__put_check_sum = 0;
-  return error;
 }
 
-Logical Bus_Serial__flush(void) {
-  Serial.write("{");
-  Logical error = (Logical)1;
-  for (Byte retries = 0; error && retries < 5; retries++) {
-    Serial.write("<");
+// The *setup* routine runs on power up and when you press reset:
 
-    // Select the address:
-    error = Bus_Serial__address_put();
-    if (error) {
-      Serial.write('!');
-    } else {
-      error = Bus_Serial__buffer_put();
-      if (error) {
-        Serial.write('@');
-      } else {
-        error = Bus_Serial__buffer_get();
-      }
-    }
+void setup() {
+  // Initialize the debugging serial port:
+  Serial.begin(115200);
+  Serial.write("\r\nbus_beaglebone\r\n");
 
-    Serial.write(">");
+  // Turn the *LED* on:
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, HIGH);
+
+  // Force the standby pin on the CAN transeciever to *LOW* to force it
+  // into active mode:
+  pinMode(BUS_STANDBY, OUTPUT);
+  digitalWrite(BUS_STANDBY, LOW);
+
+  // Enable/disable interrupts as needed:
+  switch (TEST) {
+    case TEST_BUS_OUTPUT:
+    case TEST_BUS_ECHO:
+    case TEST_BUS_COMMAND:
+      bus.interrupts_disable();
+      break;
   }
-  Serial.write("}\r\n");
-  if (error) {
-    Serial.write('#');
-  }
-  return error;
 }
 
-void Bus_Serial__byte_put(Byte byte) {
-  Bus_Serial__put_buffer[Bus_Serial__put_index++] = byte;
-  Bus_Serial__put_check_sum += byte;
-}
-
-Byte Bus_Serial__byte_get(void) {
-  Serial.write('e');
-  Bus_Serial__flush();
-  Serial.write('f');
-  Byte byte = Bus_Serial__get_buffer[Bus_Serial__get_index++];
-  Serial.write('g');
-  return byte;
-}
-
-void Bus_Serial__command_put(UShort address, Byte command) {
-  Serial.write('A');
-  if (Bus_Serial__address != address && Bus_Serial__address != BUS_NO_ADDRESS) {
-    Serial.write('B');
-    (void)Bus_Serial__flush();
-    Serial.write('C');
-  }
-  Serial.write('D');
-  Bus_Serial__address = address;
-  Serial.write('E');
-  Bus_Serial__byte_put(command);
-  Serial.write('F');
-}
-
-void Bus_Serial__command_byte_put(UShort address, Byte command, Byte byte) {
-  Bus_Serial__command_put(address, command);
-  Bus_Serial__byte_put(byte);
-}
-
-Byte Bus_Serial__command_byte_get(UShort address, Byte command) {
-  Serial.write('a');
-  Bus_Serial__command_put(address, command);
-  Serial.write('b');
-  Byte byte = Bus_Serial__byte_get();
-  Serial.write('c');
-  Serial.print(byte, HEX);
-  return byte;
-}
+// The *loop* routine is repeatably called until the processor
+// looses power.  *setup* is called first.
 
 void loop() {
   switch (TEST) {
     case TEST_BUS_COMMAND: {
       // Blink the *LED* some:
       Serial.write("[");
-      Bus_Serial__command_byte_put(ADDRESS, LED_PUT, HIGH);
-      Logical led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
-      if (led_get == 0) {
-	digitalWrite(LED, LOW);
-      } else {
-	digitalWrite(LED, HIGH);
-      }
-      Serial.write("]\r\n\r\n");
+      bus.command_ubyte_put(ADDRESS, LED_PUT, (UByte)HIGH);
+      Logical led_get = bus.command_ubyte_get(ADDRESS, LED_GET);
+      led_set(led_get);
       delay(100);
 
-      Bus_Serial__command_byte_put(ADDRESS, LED_PUT, LOW);
-      led_get = Bus_Serial__command_byte_get(ADDRESS, LED_GET);
-      if (led_get == 0) {
-	digitalWrite(LED, LOW);
-      } else {
-	digitalWrite(LED, HIGH);
-      }
+      bus.command_ubyte_put(ADDRESS, LED_PUT, LOW);
+      led_get = bus.command_ubyte_get(ADDRESS, LED_GET);
+      led_set(led_get);
       delay(100);
+
+      Serial.write("]\r\n\r\n");
       break;
     }
     case TEST_BUS_ECHO: {
@@ -292,19 +228,11 @@ void loop() {
 	Serial.write('$');
       }
   
+      led_set((receive_frame & 1) == 0);
       delay(100);
-      if ((receive_frame & 1) == 0) {
-	digitalWrite(LED, LOW);
-      } else {
-	digitalWrite(LED, HIGH);
-      }
 
+      led_set((receive_frame & 1) != 0);
       delay(100);
-      if ((receive_frame & 1) == 0) {
-	digitalWrite(LED, HIGH);
-      } else {
-	digitalWrite(LED, LOW);
-      }
 
       if (send_frame == '_') {
 	Serial.write("\r\n");
@@ -333,13 +261,7 @@ void loop() {
       bus.frame_put(frame);
 
       // Set LED to be the same as the LSB of *frame*:
-      if ((frame & 1) == 0) {
-	digitalWrite(LED, LOW);
-      } else {
-	digitalWrite(LED, HIGH);
-      }
-
-      // Delay some:
+      led_set((frame & 1) != 0);
       delay(100);
 
       // Output *frame* back to user for debugging:
@@ -352,13 +274,7 @@ void loop() {
       }
 
       // Set LED to be the opposite of the *frame* LSB:
-      if ((frame & 1) == 0) {
-	digitalWrite(LED, HIGH);
-      } else {
-	digitalWrite(LED, LOW);
-      }
-
-      // Delay some more:
+      led_set((frame & 1) == 0);
       delay(100);
 
       break;
