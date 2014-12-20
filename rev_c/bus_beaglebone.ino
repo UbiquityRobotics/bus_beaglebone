@@ -10,7 +10,7 @@
 #define TEST_BUS_COMMAND 3
 #define TEST_BUS_BRIDGE 4
 
-#define TEST TEST_BUS_BRIDGE
+#define TEST TEST_BUS_OUTPUT
 
 #define UART1_DISABLED
 
@@ -25,7 +25,9 @@
 
 
 // The *Bus* object is defined here:
-Bus bus;
+NULL_UART null_uart;
+AVR_UART1 avr_uart1(500000, (Character *)"9N1");
+Bus bus(&avr_uart1, &null_uart);
 
 // Set the *LED* to the value of *led*:
 void led_set(Logical led) {
@@ -177,11 +179,23 @@ void bridge_host_to_bus() {
 void setup() {
   // Initialize the debugging serial port:
   Serial.begin(115200);
-  //Serial.write("\r\nbus_beaglebone\r\n");
+  Serial.write("\r\nbus_beaglebone\r\n");
 
   // Turn the *LED* on:
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
+
+  //Serial.print(" A:");
+  //Serial.print(UCSR1A);
+  //Serial.print(" B:");
+  //Serial.print(UCSR1B);
+  //Serial.print(" C:");
+  //Serial.print(UCSR1C);
+  //Serial.print(" H:");
+  //Serial.print(UBRR1H);
+  //Serial.print(" L:");
+  //Serial.print(UBRR1L);
+  //Serial.print("\r\n");
 
   // Force the standby pin on the CAN transeciever to *LOW* to force it
   // into active mode:
@@ -269,32 +283,32 @@ void loop() {
       // baud rates.  We also ensure that the bus is terminated and the
       // CAN bus transceiver is on.
 
-      // *frame* is a static variable:
-      static UShort frame;
+      // *character* is a static variable:
+      static Character character;
 
-      // Make sure *frame* is "in bounds":
-      if (frame < '@' || frame > '_') {
-	frame = '@';
+      // Make sure *character* is "in bounds":
+      if (character < '@' || character > '_') {
+	character = '@';
       }
 
-      // Output *frame* to bus:
-      bus.frame_put(frame);
+      // Output *character* to bus:
+      avr_uart1.frame_put((UShort)character);
 
       // Set LED to be the same as the LSB of *frame*:
-      led_set((frame & 1) != 0);
+      led_set((character & 1) != 0);
       delay(100);
 
       // Output *frame* back to user for debugging:
-      Serial.write(frame);
-      if (frame >= '_') {
+      Serial.write(character);
+      if (character >= '_') {
 	Serial.write("\r\n");
-        frame = '@';
+        character = '@';
       } else {
-	frame += 1;
+	character += 1;
       }
 
       // Set LED to be the opposite of the *frame* LSB:
-      led_set((frame & 1) == 0);
+      led_set((character & 1) == 0);
       delay(100);
 
       break;
