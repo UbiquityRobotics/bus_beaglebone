@@ -10,7 +10,7 @@
 #define TEST_BUS_COMMAND 3
 #define TEST_BUS_BRIDGE 4
 
-#define TEST TEST_BUS_OUTPUT
+#define TEST TEST_BUS_ECHO
 
 #define UART0_DISABLED
 #define UART1_DISABLED
@@ -285,28 +285,25 @@ void loop() {
 	debug_uart.string_print((Character *)"!");
       }
 
-      // Wait for the remote module to send us something:
-      UShort receive_frame = bus.frame_get();
-      bus.frame_put(receive_frame);
+      // Wait for the result from the remote module:
+      UShort remote_frame = bus.frame_get();
 
-      // Make sure *receive_frame* matches what was originally sent:
-      if ((UShort)character != receive_frame) {
-	debug_uart.frame_put((UShort)'$');
-      }
-  
+      // Print the *remote_frame* out to *debug_uart*:
+      debug_uart.frame_put(remote_frame);
+
       // Print out any needed CRLF and update to next *character*:
-      if (character == '_') {
+      if (remote_frame == (UShort)'_') {
 	debug_uart.string_print((Character *)"\r\n");
 	character = '@';
       } else {
 	character += 1;
       }
 
-      // Let's blink the ELD for a little:
-      led_set((receive_frame & 1) == 0);
+      // Let's blink the LED for a little:
+      led_set((remote_frame & 1) == 0);
       delay(100);
 
-      led_set((receive_frame & 1) != 0);
+      led_set((remote_frame & 1) != 0);
       delay(100);
 
       break;
