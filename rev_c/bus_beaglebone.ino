@@ -224,7 +224,7 @@ void setup() {
       bus.interrupts_disable();
       avr_uart0.interrupt_set((Logical)0);
       avr_uart1.interrupt_set((Logical)0);
-
+      UCSR0B |= _BV(RXEN0) | _BV(TXEN0);
       break;
     case TEST_BUS_ECHO:
     case TEST_BUS_COMMAND:
