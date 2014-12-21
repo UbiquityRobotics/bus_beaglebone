@@ -12,6 +12,7 @@
 
 #define TEST TEST_BUS_OUTPUT
 
+#define UART0_DISABLED
 #define UART1_DISABLED
 
 // Pin defintions for bus_beaglebone:
@@ -26,7 +27,8 @@
 
 // The *Bus* object is defined here:
 NULL_UART null_uart;
-AVR_UART1 avr_uart1(500000, (Character *)"9N1");
+AVR_UART0 avr_uart0(115200L, (Character *)"8N1");
+AVR_UART1 avr_uart1(500000L, (Character *)"9N1");
 Bus bus(&avr_uart1, &null_uart);
 
 // Set the *LED* to the value of *led*:
@@ -63,18 +65,18 @@ void bridge_host_to_bus() {
   // Just keep looping:
   while (1) {
     // Do we have an 8-bit byte to read from the host?:
-    if (Serial.available() > 0 && !host_frame_in.is_full()) {
-      // Receive 8-bit byte and save it into *host_frame_in*:
-      UShort frame = (UShort)Serial.read();
-      host_frame_in.append(frame);
-    }
+    //if (Serial.available() > 0 && !host_frame_in.is_full()) {
+    //  // Receive 8-bit byte and save it into *host_frame_in*:
+    //  UShort frame = (UShort)Serial.read();
+    //  host_frame_in.append(frame);
+    //}
 
     // Do we have an 8-bit byte to send to the host?:
-    if (!host_frame_out.is_empty() && Serial.room() >= 0) {
-      // Send *frame* up to host:
-      UShort frame = host_frame_out.lop();
-      Serial.write(frame);
-    }
+    //if (!host_frame_out.is_empty() && Serial.room() >= 0) {
+    //  // Send *frame* up to host:
+    //  UShort frame = host_frame_out.lop();
+    //  Serial.write(frame);
+    //}
 
     // Do we have a 9-bit byte to read from the bus?:
     if (bus.can_receive() && !bus_frame_in.is_full()) {
@@ -178,23 +180,37 @@ void bridge_host_to_bus() {
 
 void setup() {
   // Initialize the debugging serial port:
-  Serial.begin(115200);
-  Serial.write("\r\nbus_beaglebone\r\n");
+  //Serial.begin(115200);
+  //Serial.write("\r\nbus_beaglebone\r\n");
 
   // Turn the *LED* on:
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
 
   //Serial.print(" A:");
-  //Serial.print(UCSR1A);
+  //Serial.print(UCSR0A, HEX);
   //Serial.print(" B:");
-  //Serial.print(UCSR1B);
+  //Serial.print(UCSR0B, HEX);
   //Serial.print(" C:");
-  //Serial.print(UCSR1C);
+  //Serial.print(UCSR0C, HEX);
   //Serial.print(" H:");
-  //Serial.print(UBRR1H);
+  //Serial.print(UBRR0H, HEX);
   //Serial.print(" L:");
-  //Serial.print(UBRR1L);
+  //Serial.print(UBRR0L, HEX);
+  //Serial.print("\r\n");
+
+  //AVR_UART1 avr_uart0(115200L, (Character *)"8N1");
+
+  //Serial.print(" A:");
+  //Serial.print(UCSR1A, HEX);
+  //Serial.print(" B:");
+  //Serial.print(UCSR1B, HEX);
+  //Serial.print(" C:");
+  //Serial.print(UCSR1C, HEX);
+  //Serial.print(" H:");
+  //Serial.print(UBRR1H, HEX);
+  //Serial.print(" L:");
+  //Serial.print(UBRR1L, HEX);
   //Serial.print("\r\n");
 
   // Force the standby pin on the CAN transeciever to *LOW* to force it
@@ -205,10 +221,17 @@ void setup() {
   // Enable/disable interrupts as needed:
   switch (TEST) {
     case TEST_BUS_OUTPUT:
+      bus.interrupts_disable();
+      avr_uart0.interrupt_set((Logical)0);
+      avr_uart1.interrupt_set((Logical)0);
+
+      break;
     case TEST_BUS_ECHO:
     case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
       bus.interrupts_disable();
+      avr_uart0.interrupt_set((Logical)0);
+      avr_uart1.interrupt_set((Logical)0);
       break;
   }
 }
@@ -224,7 +247,7 @@ void loop() {
     }
     case TEST_BUS_COMMAND: {
       // Blink the *LED* some:
-      Serial.write("[");
+      //Serial.write("[");
 
       // Set the *LED* to *HIGH* and then wait a little:
       bus.command_ubyte_put(ADDRESS, LED_PUT, HIGH);
@@ -238,7 +261,7 @@ void loop() {
       led_set(led_get);
       delay(100);
 
-      Serial.write("]\r\n\r\n");
+      //Serial.write("]\r\n\r\n");
       break;
     }
     case TEST_BUS_ECHO: {
@@ -252,14 +275,14 @@ void loop() {
       bus.frame_put(send_frame);
       UShort echo_frame = bus.frame_get();
       if (echo_frame != send_frame) {
-        Serial.write('!');
+        //Serial.write('!');
       }
       UShort receive_frame = bus.frame_get();
   
       if (send_frame == receive_frame) {
-	Serial.write(receive_frame);
+	//Serial.write(receive_frame);
       } else {
-	Serial.write('$');
+	//Serial.write('$');
       }
   
       led_set((receive_frame & 1) == 0);
@@ -269,7 +292,7 @@ void loop() {
       delay(100);
 
       if (send_frame == '_') {
-	Serial.write("\r\n");
+	//Serial.write("\r\n");
 	send_frame = (UShort)'@';
       } else {
 	send_frame += (UShort)1;
@@ -299,9 +322,12 @@ void loop() {
       delay(100);
 
       // Output *frame* back to user for debugging:
-      Serial.write(character);
+      //Serial.write(character);
+      avr_uart0.frame_put(character);
       if (character >= '_') {
-	Serial.write("\r\n");
+	//Serial.write("\r\n");
+	avr_uart0.frame_put('\r');
+	avr_uart0.frame_put('\n');
         character = '@';
       } else {
 	character += 1;
