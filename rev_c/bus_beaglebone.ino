@@ -24,12 +24,11 @@
 #define LED_PUT 1
 #define BUFFER_SIZE 16
 
-
 // The *Bus* object is defined here:
 NULL_UART null_uart;
-AVR_UART0 avr_uart0(115200L, (Character *)"8N1");
-AVR_UART1 avr_uart1(500000L, (Character *)"9N1");
-Bus bus(&avr_uart1, &null_uart);
+AVR_UART0 debug_uart;
+AVR_UART1 bus_uart;
+Bus bus(&bus_uart, &debug_uart);
 
 // Set the *LED* to the value of *led*:
 void led_set(Logical led) {
@@ -179,59 +178,62 @@ void bridge_host_to_bus() {
 // The *setup* routine runs on power up and when you press reset:
 
 void setup() {
-  // Initialize the debugging serial port:
-  //Serial.begin(115200);
-  //Serial.write("\r\nbus_beaglebone\r\n");
+  // Initialize *avr_uart0* as a debugging port:
+  debug_uart.begin(16000000L, 115200L, (Character *)"8N1");
+  debug_uart.string_print((Character *)"\r\nbus_bbb:\r\n");
+
+  // For debugging, dump out UART0 configuration registers:
+  //avr_uart0.string_print((Character *)" A:");
+  //avr_uart0.uinteger_print((UInteger)UCSR0A);
+  //avr_uart0.string_print((Character *)" B:");
+  //avr_uart0.uinteger_print((UInteger)UCSR0B);
+  //avr_uart0.string_print((Character *)" C:");
+  //avr_uart0.uinteger_print((UInteger)UCSR0C);
+  //avr_uart0.string_print((Character *)" H:");
+  //avr_uart0.uinteger_print((UInteger)UBRR0H);
+  //avr_uart0.string_print((Character *)" L:");
+  //avr_uart0.uinteger_print((UInteger)UBRR0L);
+  //avr_uart0.string_print((Character *)"\r\n");
 
   // Turn the *LED* on:
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
 
-  //Serial.print(" A:");
-  //Serial.print(UCSR0A, HEX);
-  //Serial.print(" B:");
-  //Serial.print(UCSR0B, HEX);
-  //Serial.print(" C:");
-  //Serial.print(UCSR0C, HEX);
-  //Serial.print(" H:");
-  //Serial.print(UBRR0H, HEX);
-  //Serial.print(" L:");
-  //Serial.print(UBRR0L, HEX);
-  //Serial.print("\r\n");
-
-  //AVR_UART1 avr_uart0(115200L, (Character *)"8N1");
-
-  //Serial.print(" A:");
-  //Serial.print(UCSR1A, HEX);
-  //Serial.print(" B:");
-  //Serial.print(UCSR1B, HEX);
-  //Serial.print(" C:");
-  //Serial.print(UCSR1C, HEX);
-  //Serial.print(" H:");
-  //Serial.print(UBRR1H, HEX);
-  //Serial.print(" L:");
-  //Serial.print(UBRR1L, HEX);
-  //Serial.print("\r\n");
+  // Initalize *avr_uart1* to talk to the bus:
+  bus_uart.begin(16000000L, 500000L, (Character *)"9N1");
 
   // Force the standby pin on the CAN transeciever to *LOW* to force it
   // into active mode:
   pinMode(BUS_STANDBY, OUTPUT);
   digitalWrite(BUS_STANDBY, LOW);
 
+  // For debugging, dump out UART1 configuration registers:
+  //avr_uart0.string_print((Character *)" A:");
+  //avr_uart0.uinteger_print((UInteger)UCSR1A);
+  //avr_uart0.string_print((Character *)" B:");
+  //avr_uart0.uinteger_print((UInteger)UCSR1B);
+  //avr_uart0.string_print((Character *)" C:");
+  //avr_uart0.uinteger_print((UInteger)UCSR1C);
+  //avr_uart0.string_print((Character *)" H:");
+  //avr_uart0.uinteger_print((UInteger)UBRR1H);
+  //avr_uart0.string_print((Character *)" L:");
+  //avr_uart0.uinteger_print((UInteger)UBRR1L);
+  //avr_uart0.string_print((Character *)"\r\n");
+
   // Enable/disable interrupts as needed:
   switch (TEST) {
     case TEST_BUS_OUTPUT:
       bus.interrupts_disable();
-      avr_uart0.interrupt_set((Logical)0);
-      avr_uart1.interrupt_set((Logical)0);
+      debug_uart.interrupt_set((Logical)0);
+      bus_uart.interrupt_set((Logical)0);
       UCSR0B |= _BV(RXEN0) | _BV(TXEN0);
       break;
     case TEST_BUS_ECHO:
     case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
       bus.interrupts_disable();
-      avr_uart0.interrupt_set((Logical)0);
-      avr_uart1.interrupt_set((Logical)0);
+      debug_uart.interrupt_set((Logical)0);
+      bus_uart.interrupt_set((Logical)0);
       break;
   }
 }
@@ -265,38 +267,48 @@ void loop() {
       break;
     }
     case TEST_BUS_ECHO: {
-      static UShort send_frame;
+      // *character* is static so that it does not change after each
+      // iteration through *loop*:
+      static Character character = '@';
 
-      if (send_frame < '@' || send_frame > '_') {
-	send_frame = (UShort)'@';
+      // Make sure that *character* is between '@' and '_':
+      if (character < '@' || character > '_') {
+	character = '@';
       }
 
-      // Output *frame*:
-      bus.frame_put(send_frame);
+      // Output *character* to bus:
+      bus.frame_put((UShort)character);
+
+      // Get the resulting *echo_frame* and indicate when it does not match:
       UShort echo_frame = bus.frame_get();
-      if (echo_frame != send_frame) {
-        //Serial.write('!');
+      if ((UShort)character != echo_frame) {
+	debug_uart.string_print((Character *)"!");
       }
+
+      // Wait for the remote module to send us something:
       UShort receive_frame = bus.frame_get();
-  
-      if (send_frame == receive_frame) {
-	//Serial.write(receive_frame);
-      } else {
-	//Serial.write('$');
+      bus.frame_put(receive_frame);
+
+      // Make sure *receive_frame* matches what was originally sent:
+      if ((UShort)character != receive_frame) {
+	debug_uart.frame_put((UShort)'$');
       }
   
+      // Print out any needed CRLF and update to next *character*:
+      if (character == '_') {
+	debug_uart.string_print((Character *)"\r\n");
+	character = '@';
+      } else {
+	character += 1;
+      }
+
+      // Let's blink the ELD for a little:
       led_set((receive_frame & 1) == 0);
       delay(100);
 
       led_set((receive_frame & 1) != 0);
       delay(100);
 
-      if (send_frame == '_') {
-	//Serial.write("\r\n");
-	send_frame = (UShort)'@';
-      } else {
-	send_frame += (UShort)1;
-      }
       break;
     }
     case TEST_BUS_OUTPUT: {
@@ -307,7 +319,7 @@ void loop() {
       // CAN bus transceiver is on.
 
       // *character* is a static variable:
-      static Character character;
+      static Character character = '@';
 
       // Make sure *character* is "in bounds":
       if (character < '@' || character > '_') {
@@ -315,19 +327,29 @@ void loop() {
       }
 
       // Output *character* to bus:
-      avr_uart1.frame_put((UShort)character);
+      bus.frame_put((UShort)character);
 
       // Set LED to be the same as the LSB of *frame*:
       led_set((character & 1) != 0);
       delay(100);
 
       // Output *frame* back to user for debugging:
-      //Serial.write(character);
-      avr_uart0.frame_put(character);
+      debug_uart.frame_put((UShort)character);
       if (character >= '_') {
-	//Serial.write("\r\n");
-	avr_uart0.frame_put('\r');
-	avr_uart0.frame_put('\n');
+	// For debugging, dump out UART1 configuration registers:
+	//avr_uart0.string_print((Character *)" A:");
+	//avr_uart0.uinteger_print((UInteger)UCSR1A);
+	//avr_uart0.string_print((Character *)" B:");
+	//avr_uart0.uinteger_print((UInteger)UCSR1B);
+	//avr_uart0.string_print((Character *)" C:");
+	//avr_uart0.uinteger_print((UInteger)UCSR1C);
+	//avr_uart0.string_print((Character *)" H:");
+	//avr_uart0.uinteger_print((UInteger)UBRR1H);
+	//avr_uart0.string_print((Character *)" L:");
+	//avr_uart0.uinteger_print((UInteger)UBRR1L);
+	//avr_uart0.string_print((Character *)"\r\n");
+
+	debug_uart.string_print((Character *)"\r\n");
         character = '@';
       } else {
 	character += 1;
