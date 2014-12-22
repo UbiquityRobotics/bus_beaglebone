@@ -10,7 +10,7 @@
 #define TEST_BUS_COMMAND 3
 #define TEST_BUS_BRIDGE 4
 
-#define TEST TEST_BUS_ECHO
+#define TEST TEST_BUS_OUTPUT
 
 #define UART0_DISABLED
 #define UART1_DISABLED
@@ -223,7 +223,6 @@ void setup() {
   // Enable/disable interrupts as needed:
   switch (TEST) {
     case TEST_BUS_OUTPUT:
-      bus.interrupts_disable();
       debug_uart.interrupt_set((Logical)0);
       bus_uart.interrupt_set((Logical)0);
       UCSR0B |= _BV(RXEN0) | _BV(TXEN0);
@@ -231,7 +230,6 @@ void setup() {
     case TEST_BUS_ECHO:
     case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
-      bus.interrupts_disable();
       debug_uart.interrupt_set((Logical)0);
       bus_uart.interrupt_set((Logical)0);
       break;
