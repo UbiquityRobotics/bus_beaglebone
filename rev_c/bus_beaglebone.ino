@@ -26,9 +26,9 @@
 
 // The *Bus* object is defined here:
 NULL_UART null_uart;
-AVR_UART0 debug_uart;
-AVR_UART1 bus_uart;
-Bus bus(&bus_uart, &debug_uart);
+AVR_UART *bus_uart = &avr_uart1;
+AVR_UART *debug_uart = &avr_uart0;
+Bus bus(bus_uart, debug_uart);
 
 // Set the *LED* to the value of *led*:
 void led_set(Logical led) {
@@ -179,8 +179,8 @@ void bridge_host_to_bus() {
 
 void setup() {
   // Initialize *avr_uart0* as a debugging port:
-  debug_uart.begin(16000000L, 115200L, (Character *)"8N1");
-  debug_uart.string_print((Character *)"\r\nbus_bbb:\r\n");
+  debug_uart->begin(16000000L, 115200L, (Character *)"8N1");
+  debug_uart->string_print((Character *)"\r\nbus_bbb:\r\n");
 
   // For debugging, dump out UART0 configuration registers:
   //avr_uart0.string_print((Character *)" A:");
@@ -200,7 +200,7 @@ void setup() {
   digitalWrite(LED, HIGH);
 
   // Initalize *avr_uart1* to talk to the bus:
-  bus_uart.begin(16000000L, 500000L, (Character *)"9N1");
+  bus_uart->begin(16000000L, 500000L, (Character *)"9N1");
 
   // Force the standby pin on the CAN transeciever to *LOW* to force it
   // into active mode:
@@ -223,15 +223,15 @@ void setup() {
   // Enable/disable interrupts as needed:
   switch (TEST) {
     case TEST_BUS_OUTPUT:
-      debug_uart.interrupt_set((Logical)0);
-      bus_uart.interrupt_set((Logical)0);
+      debug_uart->interrupt_set((Logical)0);
+      bus_uart->interrupt_set((Logical)1);
       UCSR0B |= _BV(RXEN0) | _BV(TXEN0);
       break;
     case TEST_BUS_ECHO:
     case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
-      debug_uart.interrupt_set((Logical)0);
-      bus_uart.interrupt_set((Logical)0);
+      debug_uart->interrupt_set((Logical)0);
+      bus_uart->interrupt_set((Logical)0);
       break;
   }
 }
@@ -280,18 +280,18 @@ void loop() {
       // Get the resulting *echo_frame* and indicate when it does not match:
       UShort echo_frame = bus.frame_get();
       if ((UShort)character != echo_frame) {
-	debug_uart.string_print((Character *)"!");
+	debug_uart->string_print((Character *)"!");
       }
 
       // Wait for the result from the remote module:
       UShort remote_frame = bus.frame_get();
 
       // Print the *remote_frame* out to *debug_uart*:
-      debug_uart.frame_put(remote_frame);
+      debug_uart->frame_put(remote_frame);
 
       // Print out any needed CRLF and update to next *character*:
       if (remote_frame == (UShort)'_') {
-	debug_uart.string_print((Character *)"\r\n");
+	debug_uart->string_print((Character *)"\r\n");
 	character = '@';
       } else {
 	character += 1;
@@ -329,22 +329,22 @@ void loop() {
       delay(100);
 
       // Output *frame* back to user for debugging:
-      debug_uart.frame_put((UShort)character);
+      debug_uart->frame_put((UShort)character);
       if (character >= '_') {
 	// For debugging, dump out UART1 configuration registers:
-	//avr_uart0.string_print((Character *)" A:");
-	//avr_uart0.uinteger_print((UInteger)UCSR1A);
-	//avr_uart0.string_print((Character *)" B:");
-	//avr_uart0.uinteger_print((UInteger)UCSR1B);
-	//avr_uart0.string_print((Character *)" C:");
-	//avr_uart0.uinteger_print((UInteger)UCSR1C);
-	//avr_uart0.string_print((Character *)" H:");
-	//avr_uart0.uinteger_print((UInteger)UBRR1H);
-	//avr_uart0.string_print((Character *)" L:");
-	//avr_uart0.uinteger_print((UInteger)UBRR1L);
-	//avr_uart0.string_print((Character *)"\r\n");
+	//debug_uart->string_print((Character *)" A:");
+	//debug_uart->uinteger_print((UInteger)UCSR1A);
+	//debug_uart->string_print((Character *)" B:");
+	//debug_uart->uinteger_print((UInteger)UCSR1B);
+	//debug_uart->string_print((Character *)" C:");
+	//debug_uart->uinteger_print((UInteger)UCSR1C);
+	//debug_uart->string_print((Character *)" H:");
+	//debug_uart->uinteger_print((UInteger)UBRR1H);
+	//debug_uart->string_print((Character *)" L:");
+	//debug_uart->uinteger_print((UInteger)UBRR1L);
+	//debug_uart->string_print((Character *)"\r\n");
 
-	debug_uart.string_print((Character *)"\r\n");
+	debug_uart->string_print((Character *)"\r\n");
         character = '@';
       } else {
 	character += 1;
