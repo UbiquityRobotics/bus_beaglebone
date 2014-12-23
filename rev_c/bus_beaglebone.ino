@@ -10,7 +10,7 @@
 #define TEST_BUS_COMMAND 3
 #define TEST_BUS_BRIDGE 4
 
-#define TEST TEST_BUS_COMMAND
+#define TEST TEST_BUS_BRIDGE
 
 #define UART0_DISABLED
 #define UART1_DISABLED
@@ -28,6 +28,7 @@
 NULL_UART null_uart;
 AVR_UART *bus_uart = &avr_uart1;
 AVR_UART *debug_uart = &avr_uart0;
+AVR_UART *host_uart = &avr_uart0;
 Bus bus(bus_uart, debug_uart);
 
 // Set the *LED* to the value of *led*:
@@ -64,18 +65,18 @@ void bridge_host_to_bus() {
   // Just keep looping:
   while (1) {
     // Do we have an 8-bit byte to read from the host?:
-    //if (Serial.available() > 0 && !host_frame_in.is_full()) {
-    //  // Receive 8-bit byte and save it into *host_frame_in*:
-    //  UShort frame = (UShort)Serial.read();
-    //  host_frame_in.append(frame);
-    //}
+    if (host_uart->can_receive() && !host_frame_in.is_full()) {
+      // Receive 8-bit byte and save it into *host_frame_in*:
+      UShort frame = host_uart->frame_get();
+      host_frame_in.append(frame);
+    }
 
     // Do we have an 8-bit byte to send to the host?:
-    //if (!host_frame_out.is_empty() && Serial.room() >= 0) {
-    //  // Send *frame* up to host:
-    //  UShort frame = host_frame_out.lop();
-    //  Serial.write(frame);
-    //}
+    if (!host_frame_out.is_empty() && host_uart->can_transmit()) {
+      // Send *frame* up to host:
+      UShort frame = host_frame_out.lop();
+      host_uart->frame_put(frame);
+    }
 
     // Do we have a 9-bit byte to read from the bus?:
     if (bus.can_receive() && !bus_frame_in.is_full()) {
@@ -232,8 +233,8 @@ void setup() {
       break;
     case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
-      debug_uart->interrupt_set((Logical)0);
-      bus_uart->interrupt_set((Logical)0);
+      debug_uart->interrupt_set((Logical)1);
+      bus_uart->interrupt_set((Logical)1);
       break;
   }
 }
@@ -249,7 +250,6 @@ void loop() {
     }
     case TEST_BUS_COMMAND: {
       // Blink the *LED* some:
-      //Serial.write("[");
 
       // Set the *LED* to *HIGH* and then wait a little:
       bus.command_ubyte_put(ADDRESS, LED_PUT, HIGH);
@@ -263,7 +263,6 @@ void loop() {
       led_set(led_get);
       delay(100);
 
-      //Serial.write("]\r\n\r\n");
       break;
     }
     case TEST_BUS_ECHO: {
