@@ -29,7 +29,7 @@ NULL_UART null_uart;
 AVR_UART *bus_uart = &avr_uart1;
 AVR_UART *debug_uart = &avr_uart0;
 AVR_UART *host_uart = &avr_uart0;
-Bus bus(bus_uart, debug_uart);
+Bus bus((UART *)bus_uart, (UART *)debug_uart);
 
 // Set the *LED* to the value of *led*:
 void led_set(Logical led) {
@@ -181,7 +181,6 @@ void bridge_host_to_bus() {
 void setup() {
   // Initialize *avr_uart0* as a debugging port:
   debug_uart->begin(16000000L, 115200L, (Character *)"8N1");
-  debug_uart->string_print((Character *)"\r\nbus_bbb:\r\n");
 
   // For debugging, dump out UART0 configuration registers:
   //avr_uart0.string_print((Character *)" A:");
@@ -224,16 +223,24 @@ void setup() {
   // Enable/disable interrupts as needed:
   switch (TEST) {
     case TEST_BUS_OUTPUT:
-      debug_uart->interrupt_set((Logical)1);
-      bus_uart->interrupt_set((Logical)1);
+      debug_uart->string_print((Character *)"\r\nbb_output:\r\n");
+      debug_uart->interrupt_set((Logical)0);
+      bus_uart->interrupt_set((Logical)0);
       break;
     case TEST_BUS_ECHO:
+      debug_uart->string_print((Character *)"\r\nbb_echo:\r\n");
+      debug_uart->interrupt_set((Logical)0);
+      bus_uart->interrupt_set((Logical)0);
+      break;
+    case TEST_BUS_COMMAND:
+      debug_uart->string_print((Character *)"\r\nbb_command:\r\n");
       debug_uart->interrupt_set((Logical)1);
       bus_uart->interrupt_set((Logical)1);
       break;
-    case TEST_BUS_COMMAND:
     case TEST_BUS_BRIDGE:
-      debug_uart->interrupt_set((Logical)1);
+      // No announce because we are talking to *host_uart*:
+      //debug_uart->string_print((Character *)"\r\nbb_bridge:\r\n");
+      host_uart->interrupt_set((Logical)1);
       bus_uart->interrupt_set((Logical)1);
       break;
   }
