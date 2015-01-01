@@ -76,12 +76,12 @@ static Short Kp = 20;	// PID Proportional Constant
 static Short Kd = 12;	// PID Differential Constant
 static Short Ki = 0;	// PID Integal Constant
 static Short Ko = 50;	// PID common denOminator 
-static Short const MAX_PWM = 255;
+static Byte const MAX_PWM = 127;
 
 static Logical is_moving = (Logical)0;
 
 void motor_speeds_set(Byte left_speed, Byte right_speed) {
-    is_moving = (Logical)(left_speed != 0) || (right_speed != 0);
+    //is_moving = (Logical)(left_speed != 0) || (right_speed != 0);
     bus.command_byte_put(address,  9, left_speed);
     bus.flush();
     bus.command_byte_put(address, 11, right_speed);
@@ -90,7 +90,8 @@ void motor_speeds_set(Byte left_speed, Byte right_speed) {
 
 void pid_reset(SetPointInfo *pid){
    pid->TargetTicksPerFrame = 0.0;
-   //pid->Encoder = encoder;
+   // Leave *encoder* field alone:
+   //pid->Encoder = 0;
    pid->PrevEnc = leftPID.Encoder;
    pid->output = 0;
    pid->PrevInput = 0;
@@ -133,20 +134,47 @@ void do_pid(SetPointInfo *pid) {
 }
 
 void pid_update() {
-  // Read the encoders:
-  leftPID.Encoder = bus.command_integer_get(address, 2);
-  rightPID.Encoder = bus.command_integer_get(address, 4);
-  
+  static Byte last_left_speed = 0x80;
+  static Byte last_right_speed = 0x80;
+
   if (is_moving) {
+    // Read the encoders:
+    leftPID.Encoder = bus.command_integer_get(address, 2);
+    rightPID.Encoder = bus.command_integer_get(address, 4);
+  
     // Do the PID for each motor:
-    //do_pid(&rightPID);
-    //do_pid(&leftPID);
+    //debug_uart->string_print((Text)"+");
+    do_pid(&rightPID);
+    do_pid(&leftPID);
 
     /* Set the motor speeds accordingly */
-    if (is_moving) {
-      //motor_speeds_set(leftPID.output, rightPID.output);
+    //debug_uart->string_print((Text)" l=");
+    //debug_uart->integer_print((UInteger)leftPID.output);
+    //debug_uart->string_print((Text)" r=");
+    //debug_uart->integer_print((UInteger)rightPID.output);
+    //debug_uart->string_print((Text)"\r\n");
+
+    Byte left_speed = (Byte)leftPID.output;
+    Byte right_speed = (Byte)rightPID.output;
+    
+
+    if (left_speed != last_left_speed) {
+        bus.command_byte_put(address,  9, left_speed);
+	bus.flush();
+	last_left_speed = left_speed;
+    } 
+    if (right_speed != last_right_speed) {
+	bus.command_byte_put(address, 11, right_speed);
+	bus.flush();
+	last_right_speed = right_speed;
     }
+
+    is_moving = (Logical)(left_speed != 0) || (right_speed != 0);
+
+    //motor_speeds_set((Byte)leftPID.output, (Byte)rightPID.output);
   } else {
+    //debug_uart->string_print((Text)"-");
+
     // If we're not moving there is nothing more to do:
     // Reset PIDs once, to prevent startup spikes, see
     //    http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-initialization/
@@ -369,9 +397,9 @@ void loop() {
   switch (TEST) {
     case TEST_BUS_LINE: {
       // Some constants:
-      //static const UInteger PID_RATE = 30;			// Hz.
-      //static const UInteger PID_INTERVAL = 1000 / PID_RATE;	// mSec.
-      //static const UInteger AUTO_STOP_INTERVAL = 2000;		// mSec.
+      static const UInteger PID_RATE = 5;			// Hz.
+      static const UInteger PID_INTERVAL = 1000 / PID_RATE;	// mSec.
+      //static const UInteger AUTO_STOP_INTERVAL = 2000;	// mSec.
 
       // Some variables that need to be unchanged through each loop iteration:
       static UByte address = 33;
@@ -381,11 +409,11 @@ void loop() {
       static Logical have_number = (Logical)0;
       static Logical is_negative = (Logical)0;
       //static UInteger last_motor_command_time = 0;
-      //static UInteger next_pid = 0;
+      static UInteger next_pid = 0;
       static Integer number = 0;
 
       // We need to know what time it is *now*:
-      //UInteger now = millis();
+      UInteger now = millis();
 
       // Process commands one *character* at a time:
       if (host_uart->can_receive()) {
@@ -457,7 +485,7 @@ void loop() {
 	      //bus.command_byte_put(address, 11, right_speed);
 	      //Byte xright_speed = bus.command_byte_get(address, 10);
 
-	      motor_speeds_set(left_speed, right_speed);
+	      //motor_speeds_set(left_speed, right_speed);
 	      //last_motor_command_time = now;
 
 	      // For debugging:
@@ -472,9 +500,13 @@ void loop() {
 	      //debug_uart->string_print((Text)" ");
 
 	      // For PID code:
-	      //leftPID.TargetTicksPerFrame = left_speed;
-	      //rightPID.TargetTicksPerFrame = right_speed;
-	      //motor_speeds_set(left_speed, right_speed);
+	      is_moving = (Logical)(left_speed != 0 || right_speed != 0);
+	      if (is_moving) {
+		leftPID.TargetTicksPerFrame = left_speed;
+		rightPID.TargetTicksPerFrame = right_speed;
+	      } else {
+	        motor_speeds_set(0, 0);
+	      }
 
 	      // Print the usual "OK" result:
 	      host_uart->string_print((Text)"OK\r\n");
@@ -523,10 +555,11 @@ void loop() {
       }
 
       // Do we need to do a PID update cycle?:
-      //if (now > next_pid) {
-	//pid_update();
-        //next_pid += PID_INTERVAL;
-      //}
+      if (now > next_pid) {
+	//debug_uart->string_print((Text)"+");
+	pid_update();
+        next_pid += PID_INTERVAL;
+      }
 
       // Do we need to shut down the motor?:
       //if (now - last_motor_command_time > AUTO_STOP_INTERVAL) {
