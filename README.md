@@ -313,39 +313,51 @@ the power supply to ground.
 
 ## Rev. C Issues
 
-* Pin 10 of U1 has no 100K pull-up.
+* Pin 10 of U1 has no 100K pull-up. [done]
 
 * ISP connector is too close to real time clock to work with the
   Atmel-ICE programmer.  There is actually plenty of room around
-  the crystal and load capacitors.
+  the crystal and load capacitors. [done]
 
 * The hole for the plus terminal of the Litium battery is way
   too big.
 
-* The 5mm Terminal blocks are oriented backwards.
+* The 5mm Terminal blocks are oriented backwards. [removed]
 
 * Think about changing the 1x1 mis-alignment pins for the
-  BBB connector to 1x2's.  They would be easier to install.
+  BBB connector to 1x2's.  They would be easier to install. [done]
 
 * Think about removing the R9/R10 pull-up resistors.  The BBB
-  already has pull-up resistors.
+  already has pull-up resistors. [done]
 
 * The Lithium battery overlaps with the JTAG connector.  Perhaps
-  rearrange.
+  rearrange. [done]
 
 * There is no filter capacitor for the real time clock.
 
 * The RC constant of R4 * (C6 + C8) needs to be small enough
   that the circuit will actually reset before jumping to location 0.
   When both C6 and C8 are 1uF, the RC constant is too big.
-  Thus, probably C6 and C8 should be set to .1uF.
+  Thus, probably C6 and C8 should be set to .1uF. [done]
 
 * N7 is too close to N6.  It is really hard to jumper the LED
-  to be connected to D13.
+  to be connected to D13. [5V Regulator changed]
 
-* N6 is artwork is not next to actual N6 connector.
+* N6 is artwork is not next to actual N6 connector. [done]
 
-* N6 would have mechanical interferance with N2.
+* N6 would have mechanical interferance with N2. [done]
+
+* Think about adding lines to the BBB POWER button and reset.
+  [not done]
+
+* The Ground on pins 1 and 2 of the BBB connector is not very good.
+  [done]
+
+* Pin 31 is hooked to a high frequency SPI signal.  It should be
+  connected to a slower GPIO line. [done]
+
+* Think about adding a female USB A connector to provide 5V to
+  other devices that need 5V. [see bus_usb_power]
 
 ## ROS Integration
 
@@ -633,5 +645,4 @@ ROS Arduino Bridge.
     stops.
 
 25. Remove power cable and USB-to Serial cable.
-
 
