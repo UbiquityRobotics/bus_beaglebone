@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Tue 13 Jan 2015 02:24:49 PM PST
+Cmp-Mod V01 Created by Cvpcb (2014-jul-16 BZR unknown)-product   date = Wed 14 Jan 2015 05:00:10 PM PST
 
 BeginCmp
 TimeStamp = /5443556B;
@@ -283,7 +283,7 @@ EndCmp
 BeginCmp
 TimeStamp = /53E4047B;
 Reference = U2;
-ValeurCmp = 74HCT08;
+ValeurCmp = 74HC08;
 IdModule  = bus_beaglebone:DIP-14__300;
 EndCmp
 

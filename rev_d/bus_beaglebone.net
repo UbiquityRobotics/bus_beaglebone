@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/wayne/public_html/projects/bus_beaglebone/rev_d/bus_beaglebone.sch)
-    (date "Tue 13 Jan 2015 02:24:43 PM PST")
+    (date "Wed 14 Jan 2015 04:59:54 PM PST")
     (tool "Eeschema (2014-jul-16 BZR unknown)-product"))
   (components
     (comp (ref U5)
@@ -125,7 +125,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 53E4066A))
     (comp (ref U2)
-      (value 74HCT08)
+      (value 74HC08)
       (footprint bus_beaglebone:DIP-14__300)
       (libsource (lib bus_beaglebone) (part 74X08))
       (sheetpath (names /) (tstamps /))
@@ -287,13 +287,13 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 54B37A7E)))
   (libparts
-    (libpart (lib bus_beaglebone) (part 3MM_HOLE)
-      (description "3mm Mounting Hole (#4 hole too)")
+    (libpart (lib bus_beaglebone) (part 2_LEAD_PUSH_BUTTON)
       (fields
-        (field (name Reference) H)
-        (field (name Value) 3MM_HOLE))
+        (field (name Reference) SW)
+        (field (name Value) 2_LEAD_PUSH_BUTTON))
       (pins
-        (pin (num 1) (name GND) (type power_in))))
+        (pin (num 1) (name ~) (type passive))
+        (pin (num 2) (name ~) (type passive))))
     (libpart (lib bus_beaglebone) (part 74X08)
       (aliases
         (alias 74LS09))
@@ -315,13 +315,13 @@
         (pin (num 12) (name ~) (type input))
         (pin (num 13) (name ~) (type input))
         (pin (num 14) (name VCC) (type power_in))))
-    (libpart (lib bus_beaglebone) (part 2_LEAD_PUSH_BUTTON)
+    (libpart (lib bus_beaglebone) (part 3MM_HOLE)
+      (description "3mm Mounting Hole (#4 hole too)")
       (fields
-        (field (name Reference) SW)
-        (field (name Value) 2_LEAD_PUSH_BUTTON))
+        (field (name Reference) H)
+        (field (name Value) 3MM_HOLE))
       (pins
-        (pin (num 1) (name ~) (type passive))
-        (pin (num 2) (name ~) (type passive))))
+        (pin (num 1) (name GND) (type power_in))))
     (libpart (lib bus_beaglebone) (part ARD_SPI_HEADER)
       (description "Arduino SPI Header")
       (fields
