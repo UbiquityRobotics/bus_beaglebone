@@ -11,7 +11,7 @@
 #define TEST_BUS_BRIDGE 4
 #define TEST_BUS_LINE 5
 
-#define TEST TEST_BUS_OUTPUT
+#define TEST TEST_BUS_LINE
 
 #define UART0_DISABLED
 #define UART1_DISABLED
