@@ -1,6 +1,6 @@
 // Copyright (c) 2014 by Wayne C. Gramlich.  All rights reserved.
 
-#include "Bus.h"
+#include "Bus_Slave.h"
 
 class Frame_Buffer {
   public:

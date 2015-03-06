@@ -2,7 +2,7 @@
 //
 // This code drives the bus_beagle_bone_black board.
 
-#include "Bus.h"
+#include "Bus_Slave.h"
 #include "Frame_Buffer.h"
 
 #define TEST_BUS_OUTPUT 1
@@ -30,7 +30,7 @@ NULL_UART null_uart;
 AVR_UART *bus_uart = &avr_uart1;
 AVR_UART *debug_uart = &avr_uart0;
 AVR_UART *host_uart = &avr_uart0;
-Bus bus((UART *)bus_uart, (UART *)host_uart);
+Bus_Slave bus_slave((UART *)bus_uart, (UART *)host_uart);
 
 typedef struct {
   Double TargetTicksPerFrame;	// target speed in ticks per frame
@@ -82,10 +82,10 @@ static Logical is_moving = (Logical)0;
 
 void motor_speeds_set(Byte left_speed, Byte right_speed) {
     //is_moving = (Logical)(left_speed != 0) || (right_speed != 0);
-    bus.command_byte_put(address,  9, left_speed);
-    bus.flush();
-    bus.command_byte_put(address, 11, right_speed);
-    bus.flush();
+    bus_slave.command_byte_put(address,  9, left_speed);
+    bus_slave.flush();
+    bus_slave.command_byte_put(address, 11, right_speed);
+    bus_slave.flush();
 }
 
 void pid_reset(SetPointInfo *pid){
@@ -139,8 +139,8 @@ void pid_update() {
 
   if (is_moving) {
     // Read the encoders:
-    leftPID.Encoder = bus.command_integer_get(address, 2);
-    rightPID.Encoder = bus.command_integer_get(address, 4);
+    leftPID.Encoder = bus_slave.command_integer_get(address, 2);
+    rightPID.Encoder = bus_slave.command_integer_get(address, 4);
   
     // Do the PID for each motor:
     //debug_uart->string_print((Text)"+");
@@ -159,13 +159,13 @@ void pid_update() {
     
 
     if (left_speed != last_left_speed) {
-        bus.command_byte_put(address,  9, left_speed);
-	bus.flush();
+        bus_slave.command_byte_put(address,  9, left_speed);
+	bus_slave.flush();
 	last_left_speed = left_speed;
     } 
     if (right_speed != last_right_speed) {
-	bus.command_byte_put(address, 11, right_speed);
-	bus.flush();
+	bus_slave.command_byte_put(address, 11, right_speed);
+	bus_slave.flush();
 	last_right_speed = right_speed;
     }
 
@@ -217,17 +217,17 @@ void bridge_host_to_bus() {
     }
 
     // Do we have a 9-bit byte to read from the bus?:
-    if (bus.can_receive() && !bus_frame_in.is_full()) {
+    if (bus_slave.can_receive() && !bus_frame_in.is_full()) {
       // Recevie a bus *frame* and save it into *bus_frame_in*:
-      UShort frame = bus.frame_get();
+      UShort frame = bus_slave.frame_get();
       bus_frame_in.append(frame);
     }
 
     // Is there a pending 9-bit frame to send to bus?:
-    if (!bus_frame_out.is_empty() && bus.can_transmit()) {
+    if (!bus_frame_out.is_empty() && bus_slave.can_transmit()) {
       // Send *frame* out to the bus:
       UShort frame = bus_frame_out.lop();
-      bus.frame_put(frame);
+      bus_slave.frame_put(frame);
 
       // Remember that we want to *echo_suppress* *frame*:
       echo_suppress = frame;
@@ -466,8 +466,8 @@ void loop() {
 	  switch (command) {
 	    case 'e': {
 	      // Read encoders ("e"):
-	      Integer encoder0 = bus.command_integer_get(address, 2);
-	      Integer encoder1 = bus.command_integer_get(address, 4);
+	      Integer encoder0 = bus_slave.command_integer_get(address, 2);
+	      Integer encoder1 = bus_slave.command_integer_get(address, 4);
 
 	      host_uart->integer_print(encoder0);
 	      host_uart->string_print((Text)" ");
@@ -514,8 +514,8 @@ void loop() {
 	    }
 	    case 'r': {
 	      // Reset encoders ("r"):
-	      bus.command_integer_put(address, 3, 0);
-	      bus.command_integer_put(address, 5, 0);
+	      bus_slave.command_integer_put(address, 3, 0);
+	      bus_slave.command_integer_put(address, 5, 0);
 
 	      // Print the usual "OK" result:
 	      host_uart->string_print((Text)"OK\r\n");
@@ -575,14 +575,14 @@ void loop() {
       // Blink the *LED* some:
 
       // Set the *LED* to *HIGH* and then wait a little:
-      bus.command_ubyte_put(ADDRESS, LED_PUT, HIGH);
-      Logical led_get = bus.command_ubyte_get(ADDRESS, LED_GET);
+      bus_slave.command_ubyte_put(ADDRESS, LED_PUT, HIGH);
+      Logical led_get = bus_slave.command_ubyte_get(ADDRESS, LED_GET);
       led_set(led_get);
       delay(100);
 
       // Set the *LED* to *LOW* and then wait a little:
-      bus.command_ubyte_put(ADDRESS, LED_PUT, LOW);
-      led_get = bus.command_ubyte_get(ADDRESS, LED_GET);
+      bus_slave.command_ubyte_put(ADDRESS, LED_PUT, LOW);
+      led_get = bus_slave.command_ubyte_get(ADDRESS, LED_GET);
       led_set(led_get);
       delay(100);
 
@@ -599,16 +599,16 @@ void loop() {
       }
 
       // Output *character* to bus:
-      bus.frame_put((UShort)character);
+      bus_slave.frame_put((UShort)character);
 
       // Get the resulting *echo_frame* and indicate when it does not match:
-      UShort echo_frame = bus.frame_get();
+      UShort echo_frame = bus_slave.frame_get();
       if ((UShort)character != echo_frame) {
 	host_uart->string_print((Character *)"!");
       }
 
       // Wait for the result from the remote module:
-      UShort remote_frame = bus.frame_get();
+      UShort remote_frame = bus_slave.frame_get();
 
       // Print the *remote_frame* out to *host_uart*:
       host_uart->frame_put(remote_frame);
@@ -648,7 +648,7 @@ void loop() {
       }
 
       // Output *character* to bus:
-      bus.frame_put((UShort)character);
+      bus_slave.frame_put((UShort)character);
 
       // Set LED to be the same as the LSB of *frame*:
       led_set((character & 1) != 0);
